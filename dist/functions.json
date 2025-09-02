@@ -1,0 +1,172 @@
+{
+    "allowCustomDataForDataTypeAny": true,
+    "functions": [
+        {
+            "description": "SqExcel Custom Functions\n\nIMPORTANT: Authentication with Seeq should be done through the SqExcel taskpane, NOT through Excel functions.\nThe SEEQ_AUTH, SEEQ_AUTH_STATUS, and SEEQ_REAUTH functions are disabled and will show instructions\nto use the taskpane instead.\n\nTo authenticate:\n1. Open the SqExcel taskpane\n2. Enter your Seeq server URL, access key, and password\n3. Click \"Authenticate\"\n4. Once authenticated, you can use SEEQ_SENSOR_DATA and other functions",
+            "id": "ADD",
+            "name": "ADD",
+            "parameters": [
+                {
+                    "description": "First number",
+                    "name": "first",
+                    "type": "number"
+                },
+                {
+                    "description": "Second number",
+                    "name": "second",
+                    "type": "number"
+                }
+            ],
+            "result": {
+                "type": "number"
+            }
+        },
+        {
+            "description": "Displays the current time once a second.",
+            "id": "CLOCK",
+            "name": "CLOCK",
+            "options": {
+                "stream": true
+            },
+            "parameters": [],
+            "result": {
+                "type": "string"
+            }
+        },
+        {
+            "description": "Increments a value once a second.",
+            "id": "INCREMENT",
+            "name": "INCREMENT",
+            "options": {
+                "stream": true
+            },
+            "parameters": [
+                {
+                    "description": "Amount to increment",
+                    "name": "incrementBy",
+                    "type": "number"
+                }
+            ],
+            "result": {
+                "type": "number"
+            }
+        },
+        {
+            "description": "Writes a message to console.log().",
+            "id": "LOG",
+            "name": "LOG",
+            "parameters": [
+                {
+                    "description": "String to write.",
+                    "name": "message",
+                    "type": "string"
+                }
+            ],
+            "result": {
+                "type": "string"
+            }
+        },
+        {
+            "description": "Gets the current Python/SPy authentication status.",
+            "id": "SEEQ_PYTHON_AUTH_STATUS",
+            "name": "SEEQ_PYTHON_AUTH_STATUS",
+            "parameters": [],
+            "result": {
+                "dimensionality": "matrix",
+                "type": "string"
+            }
+        },
+        {
+            "description": "Re-authenticates with Seeq using stored credentials.\nThis can be used if authentication expires or fails.",
+            "id": "SEEQ_REAUTH",
+            "name": "SEEQ_REAUTH",
+            "parameters": [],
+            "result": {
+                "dimensionality": "matrix",
+                "type": "string"
+            }
+        },
+        {
+            "description": "Tests connection to a Seeq server.",
+            "id": "SEEQ_TEST_CONNECTION",
+            "name": "SEEQ_TEST_CONNECTION",
+            "parameters": [
+                {
+                    "description": "Seeq server URL",
+                    "name": "url",
+                    "type": "string"
+                }
+            ],
+            "result": {
+                "dimensionality": "matrix",
+                "type": "string"
+            }
+        },
+        {
+            "description": "Gets Seeq server information.",
+            "id": "SEEQ_SERVER_INFO",
+            "name": "SEEQ_SERVER_INFO",
+            "parameters": [
+                {
+                    "description": "Seeq server URL",
+                    "name": "url",
+                    "type": "string"
+                }
+            ],
+            "result": {
+                "dimensionality": "matrix",
+                "type": "string"
+            }
+        },
+        {
+            "description": "Searches for sensors in Seeq and pulls their data over a specified time range.\nThis is an array function that should be called on a range that can accommodate the output.",
+            "id": "SEEQ_SENSOR_DATA",
+            "name": "SEEQ_SENSOR_DATA",
+            "parameters": [
+                {
+                    "description": "Range containing sensor names (e.g., B1:D1)",
+                    "dimensionality": "matrix",
+                    "name": "sensorNames",
+                    "type": "string"
+                },
+                {
+                    "description": "Start time for data pull (ISO format: \"2024-01-01T00:00:00\")",
+                    "name": "startDatetime",
+                    "type": "string"
+                },
+                {
+                    "description": "End time for data pull (ISO format: \"2024-01-31T23:59:59\")",
+                    "name": "endDatetime",
+                    "type": "string"
+                },
+                {
+                    "description": "Grid interval for data (e.g., \"15min\", \"1h\", \"1d\") - defaults to \"15min\"",
+                    "name": "grid",
+                    "optional": true,
+                    "type": "string"
+                }
+            ],
+            "result": {
+                "dimensionality": "matrix",
+                "type": "string"
+            }
+        },
+        {
+            "description": "Searches for sensors in Seeq without pulling data.",
+            "id": "SEEQ_SEARCH_SENSORS",
+            "name": "SEEQ_SEARCH_SENSORS",
+            "parameters": [
+                {
+                    "description": "Range containing sensor names (e.g., B1:D1)",
+                    "dimensionality": "matrix",
+                    "name": "sensorNames",
+                    "type": "string"
+                }
+            ],
+            "result": {
+                "dimensionality": "matrix",
+                "type": "string"
+            }
+        }
+    ]
+}
