@@ -12,33 +12,12 @@ const BACKEND_URL = 'https://localhost:3000';
 Office.onReady(() => {
   document.getElementById("sideload-msg").style.display = "none";
   document.getElementById("app-body").style.display = "flex";
-  document.getElementById("run").onclick = run;
   
   // Initialize Seeq authentication
   initializeSeeqAuth();
 });
 
-export async function run() {
-  try {
-    await Excel.run(async (context) => {
-      /**
-       * Insert your Excel code here
-       */
-      const range = context.workbook.getSelectedRange();
 
-      // Read the range address
-      range.load("address");
-
-      // Update the fill color
-      range.format.fill.color = "yellow";
-
-      await context.sync();
-      console.log(`The range address was ${range.address}.`);
-    });
-  } catch (error) {
-    console.error(error);
-  }
-}
 
 // Seeq Authentication Interface
 interface SeeqAuthResult {
@@ -132,7 +111,7 @@ async function authenticateWithSeeq(): Promise<void> {
     const result = await authenticate(url, accessKey, password, ignoreSsl);
     
     if (result.success) {
-      showAuthStatus(result.message, "success");
+      showAuthStatus("Authentication successful", "success");
       saveCredentials(url, accessKey, password, ignoreSsl);
       updateAuthUI(true);
       // Update Excel function cache
