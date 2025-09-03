@@ -9,7 +9,7 @@
 import { SeeqAPIClient } from './seeq-api-client';
 
 // Version number to prove we're using the new code
-const ADDIN_VERSION = "2.0.0 - Direct Seeq API Implementation";
+const ADDIN_VERSION = "1.0.0.2 - Enhanced Error Handling & CORS Debugging";
 
 // Global API client instance
 let seeqClient: SeeqAPIClient | null = null;
