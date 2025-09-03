@@ -5,8 +5,14 @@
 
 /* global console, document, Excel, Office */
 
-// Backend server configuration
-const BACKEND_URL = 'https://localhost:3000';
+// Import the new Seeq API client
+import { SeeqAPIClient } from './seeq-api-client';
+
+// Version number to prove we're using the new code
+const ADDIN_VERSION = "2.0.0 - Direct Seeq API Implementation";
+
+// Global API client instance
+let seeqClient: SeeqAPIClient | null = null;
 
 // The initialize function must be run each time a new page is loaded
 Office.onReady(() => {
@@ -16,8 +22,6 @@ Office.onReady(() => {
   // Initialize Seeq authentication
   initializeSeeqAuth();
 });
-
-
 
 // Seeq Authentication Interface
 interface SeeqAuthResult {
@@ -65,6 +69,10 @@ function initializeSeeqAuth(): void {
 
   // Load saved credentials if available
   loadSavedCredentials();
+  
+  // Display version number to prove we're using new code
+  console.log(`SqExcel Add-in Version: ${ADDIN_VERSION}`);
+  showAuthStatus(`Add-in Version: ${ADDIN_VERSION}`, "info");
 }
 
 async function testSeeqConnection(): Promise<void> {
@@ -78,11 +86,25 @@ async function testSeeqConnection(): Promise<void> {
   showAuthStatus("Testing connection...", "loading");
   
   try {
-    // Call the Python backend to test connection
-    const result = await testConnection(url);
+    // Create new API client and test connection
+    seeqClient = new SeeqAPIClient(url);
+    
+    // Test basic connection first
+    const result = await seeqClient.testConnection();
     
     if (result.success) {
       showAuthStatus(result.message, "success");
+      
+      // Test authentication endpoint specifically
+      showAuthStatus("Testing authentication endpoint...", "loading");
+      const authEndpointResult = await seeqClient.testAuthEndpoint();
+      
+      if (authEndpointResult.success) {
+        showAuthStatus(`${result.message} - ${authEndpointResult.message}`, "success");
+      } else {
+        showAuthStatus(`${result.message} - Warning: ${authEndpointResult.message}`, "warning");
+      }
+      
       // Update Excel function cache
       updateExcelCache("auth", result);
     } else {
@@ -107,8 +129,12 @@ async function authenticateWithSeeq(): Promise<void> {
   showAuthStatus("Authenticating...", "loading");
   
   try {
-    // Call the Python backend to authenticate
-    const result = await authenticate(url, accessKey, password, ignoreSsl);
+    // Use the API client to authenticate
+    if (!seeqClient) {
+      seeqClient = new SeeqAPIClient(url);
+    }
+    
+    const result = await seeqClient.authenticate(accessKey, password, 'Seeq', ignoreSsl);
     
     if (result.success) {
       showAuthStatus("Authentication successful", "success");
@@ -142,8 +168,13 @@ async function searchSensors(): Promise<void> {
   showAuthStatus("Searching for sensors...", "loading");
   
   try {
-    // Call the Python backend to search for sensors
-    const result = await searchSensorsOnly(sensorNames);
+    // Use the API client to search for sensors
+    if (!seeqClient) {
+      showAuthStatus("Please test connection first", "error");
+      return;
+    }
+    
+    const result = await seeqClient.searchSensors(sensorNames);
     
     if (result.success) {
       showAuthStatus(`Found ${result.sensor_count} sensors`, "success");
@@ -181,8 +212,13 @@ async function pullSensorData(): Promise<void> {
   showAuthStatus("Pulling sensor data...", "loading");
   
   try {
-    // Call the Python backend to search and pull data
-    const result = await searchAndPullSensors(sensorNames, startTimeInput, endTimeInput, grid);
+    // Use the API client to search and pull data
+    if (!seeqClient) {
+      showAuthStatus("Please test connection first", "error");
+      return;
+    }
+    
+    const result = await seeqClient.searchAndPullSensors(sensorNames, startTimeInput, endTimeInput, grid);
     
     if (result.success) {
       showAuthStatus(`Retrieved data for ${result.sensor_count} sensors`, "success");
@@ -202,15 +238,9 @@ function logoutFromSeeq(): void {
   // Clear saved credentials
   localStorage.removeItem("seeq_credentials");
   
-  // Clear credentials from backend so Excel functions won't work
-  try {
-    fetch(`${BACKEND_URL}/api/seeq/credentials`, {
-      method: 'DELETE'
-    }).catch(error => {
-      console.log("Could not clear backend credentials:", error);
-    });
-  } catch (error) {
-    console.log("Could not clear backend credentials:", error);
+  // Clear API client state
+  if (seeqClient) {
+    seeqClient.logout();
   }
   
   // Update UI
@@ -276,233 +306,50 @@ function saveCredentials(url: string, accessKey: string, password: string, ignor
   localStorage.setItem("seeq_credentials", JSON.stringify(credentials));
 }
 
-// Function to update credentials in the backend for Excel functions
-async function updateBackendCredentials(url: string, accessKey: string, password: string, ignoreSsl: boolean): Promise<void> {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/seeq/credentials`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        url, 
-        accessKey, 
-        password, 
-        authProvider: 'Seeq', 
-        ignoreSslErrors: ignoreSsl,
-        timestamp: new Date().toISOString()
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    if (result.success) {
-      showAuthStatus("Credentials updated for Excel functions", "success");
-    } else {
-      showAuthStatus("Failed to update credentials for Excel functions", "error");
-    }
-  } catch (error) {
-    showAuthStatus(`Failed to update backend credentials: ${error}`, "error");
-  }
-}
-
+// Load saved credentials from localStorage
 function loadSavedCredentials(): void {
   const saved = localStorage.getItem("seeq_credentials");
   if (saved) {
     try {
       const credentials = JSON.parse(saved);
       
+      // Populate form fields
       (document.getElementById("seeq-url") as HTMLInputElement).value = credentials.url || "";
       (document.getElementById("seeq-access-key") as HTMLInputElement).value = credentials.accessKey || "";
       (document.getElementById("seeq-password") as HTMLInputElement).value = credentials.password || "";
       (document.getElementById("ignore-ssl") as HTMLInputElement).checked = credentials.ignoreSsl || false;
       
-      // Check if credentials are still valid (not expired)
-      const savedTime = new Date(credentials.timestamp);
+      // Check if credentials are still valid (less than 24 hours old)
+      const timestamp = new Date(credentials.timestamp);
       const now = new Date();
-      const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60);
+      const hoursDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60);
       
-      if (hoursDiff < 24) { // Credentials valid for 24 hours
+      if (hoursDiff < 24) {
+        // Credentials are still valid, update UI
         updateAuthUI(true);
         showAuthStatus("Using saved credentials", "info");
+        
+        // Recreate API client with saved URL
+        if (credentials.url) {
+          seeqClient = new SeeqAPIClient(credentials.url);
+        }
       } else {
-        // Clear expired credentials
+        // Credentials expired, remove them
         localStorage.removeItem("seeq_credentials");
       }
     } catch (error) {
       console.error("Failed to load saved credentials:", error);
+      localStorage.removeItem("seeq_credentials");
     }
   }
-}
-
-
-
-// Python backend integration functions
-async function testConnection(url: string): Promise<SeeqConnectionResult> {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/seeq/test-connection`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ url })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    // Fallback to direct Python call if API not available
-    return await callPythonBackend('test_connection', [url]);
-  }
-}
-
-async function authenticate(url: string, accessKey: string, password: string, ignoreSsl: boolean): Promise<SeeqAuthResult> {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/seeq/auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ url, accessKey, password, authProvider: 'Seeq', ignoreSslErrors: ignoreSsl })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    // If authentication is successful, also send credentials to the credentials endpoint
-    // so Excel functions can access them
-    if (result.success) {
-      try {
-        await fetch(`${BACKEND_URL}/api/seeq/credentials`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            url, 
-            accessKey, 
-            password, 
-            authProvider: 'Seeq', 
-            ignoreSslErrors: ignoreSsl,
-            timestamp: new Date().toISOString()
-          })
-        });
-      } catch (credError) {
-        console.log("Could not update credentials endpoint:", credError);
-        // Don't fail authentication if credentials endpoint update fails
-      }
-    }
-    
-    return result;
-  } catch (error) {
-    // Fallback to direct Python call if API not available
-    return await callPythonBackend('authenticate_seeq', [url, accessKey, password, 'Seeq', ignoreSsl]);
-  }
-}
-
-async function searchSensorsOnly(sensorNames: string[]): Promise<any> {
-  try {
-    // Get stored credentials
-    const saved = localStorage.getItem("seeq_credentials");
-    if (!saved) {
-      throw new Error('No stored credentials. Please authenticate first.');
-    }
-    
-    const credentials = JSON.parse(saved);
-    
-    const response = await fetch(`${BACKEND_URL}/api/seeq/search-sensors`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        sensorNames,
-        url: credentials.url,
-        accessKey: credentials.accessKey,
-        password: credentials.password,
-        authProvider: 'Seeq',
-        ignoreSslErrors: credentials.ignoreSsl
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    // Fallback to direct Python call if API not available
-    return await callPythonBackend('search_sensors_only', [sensorNames]);
-  }
-}
-
-async function searchAndPullSensors(sensorNames: string[], startTime: string, endTime: string, grid: string): Promise<any> {
-  try {
-    // Get stored credentials
-    const saved = localStorage.getItem("seeq_credentials");
-    if (!saved) {
-      throw new Error('No stored credentials. Please authenticate first.');
-    }
-    
-    const credentials = JSON.parse(saved);
-    
-    const response = await fetch(`${BACKEND_URL}/api/seeq/sensor-data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        sensorNames, 
-        startDatetime: startTime, 
-        endDatetime: endTime, 
-        grid,
-        url: credentials.url,
-        accessKey: credentials.accessKey,
-        password: credentials.password,
-        authProvider: 'Seeq',
-        ignoreSslErrors: credentials.ignoreSsl
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    // Fallback to direct Python call if API not available
-    return await callPythonBackend('search_and_pull_sensors', [sensorNames, startTime, endTime, grid]);
-  }
-}
-
-// Direct Python backend call (fallback)
-async function callPythonBackend(functionName: string, args: any[]): Promise<any> {
-  // This would be implemented to directly call the Python backend
-  // For now, return a placeholder
-  return {
-    success: false,
-    message: "Direct Python backend calls not yet implemented",
-    error: "Use taskpane interface instead"
-  };
 }
 
 // Update Excel function cache
 function updateExcelCache(operationType: string, data: any): void {
   try {
-    // Call the Excel function to update cache
-    const dataJson = JSON.stringify(data);
-    const cacheUpdate = `=SEEQ_UPDATE_CACHE("${operationType}", '${dataJson}')`;
+    const jsonData = JSON.stringify(data);
+    const cacheUpdate = `=SEEQ_UPDATE_CACHE("${operationType}", '${jsonData}')`;
     
-    // Insert the cache update into the active worksheet
     Excel.run(async (context) => {
       const worksheet = context.workbook.worksheets.getActiveWorksheet();
       const range = worksheet.getRange("A1");
@@ -512,17 +359,16 @@ function updateExcelCache(operationType: string, data: any): void {
       console.log("Could not update Excel cache automatically:", error);
       console.log("Manual cache update required:", cacheUpdate);
     });
-    
   } catch (error) {
     console.error("Failed to update Excel cache:", error);
   }
 }
 
-// Display functions for results
+// Display search results in the UI
 function displaySearchResults(results: any[]): void {
   const resultsDiv = document.getElementById("search-results");
-  if (resultsDiv) {
-    resultsDiv.innerHTML = `
+  if (resultsDiv && results.length > 0) {
+    let html = `
       <h3>Search Results (${results.length} sensors)</h3>
       <div class="results-table">
         <table>
@@ -536,47 +382,65 @@ function displaySearchResults(results: any[]): void {
             </tr>
           </thead>
           <tbody>
-            ${results.map(sensor => `
-              <tr>
-                <td>${sensor.Original_Name || sensor.Name || 'N/A'}</td>
-                <td>${sensor.Name || 'N/A'}</td>
-                <td>${sensor.ID || 'Not Found'}</td>
-                <td>${sensor.Type || 'N/A'}</td>
-                <td>${sensor.Status || 'Unknown'}</td>
-              </tr>
-            `).join('')}
+    `;
+    
+    results.forEach(result => {
+      html += `
+        <tr>
+          <td>${result.Original_Name || result.Name || "N/A"}</td>
+          <td>${result.Name || "N/A"}</td>
+          <td>${result.ID || "Not Found"}</td>
+          <td>${result.Type || "N/A"}</td>
+          <td>${result.Status || "Unknown"}</td>
+        </tr>
+      `;
+    });
+    
+    html += `
           </tbody>
         </table>
       </div>
     `;
+    
+    resultsDiv.innerHTML = html;
   }
 }
 
+// Display data results in the UI
 function displayDataResults(result: any): void {
   const resultsDiv = document.getElementById("data-results");
   if (resultsDiv && result.data && result.data.length > 0) {
-    const sampleData = result.data.slice(0, 10); // Show first 10 rows
-    resultsDiv.innerHTML = `
+    const dataToShow = result.data.slice(0, 10); // Show first 10 rows
+    
+    let html = `
       <h3>Data Results (${result.data.length} rows)</h3>
       <div class="results-table">
         <table>
           <thead>
             <tr>
               <th>Timestamp</th>
-              ${result.data_columns.map((col: string) => `<th>${col}</th>`).join('')}
+              ${result.data_columns.map(col => `<th>${col}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
-            ${sampleData.map((row: any) => `
-              <tr>
-                <td>${row.Timestamp || row.index || 'N/A'}</td>
-                ${result.data_columns.map((col: string) => `<td>${row[col] !== undefined ? row[col] : 'N/A'}</td>`).join('')}
-              </tr>
-            `).join('')}
+    `;
+    
+    dataToShow.forEach(row => {
+      html += `
+        <tr>
+          <td>${row.Timestamp || row.index || "N/A"}</td>
+          ${result.data_columns.map(col => `<td>${row[col] !== undefined ? row[col] : "N/A"}</td>`).join('')}
+        </tr>
+      `;
+    });
+    
+    html += `
           </tbody>
         </table>
         ${result.data.length > 10 ? `<p><em>Showing first 10 of ${result.data.length} rows</em></p>` : ''}
       </div>
     `;
+    
+    resultsDiv.innerHTML = html;
   }
 }

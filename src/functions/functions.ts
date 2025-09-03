@@ -523,6 +523,52 @@ export function seeqServerInfo(url: string): string[][] {
 }
 
 /**
+ * Helper function to convert timestamps to Excel serial numbers
+ * Returns Excel's internal date representation for better compatibility
+ * Excel serial number = (JS timestamp / (1000 * 60 * 60 * 24)) + 25569
+ * 
+ * Note: These serial numbers will display as large numbers (e.g., 45870.0)
+ * To see them as readable dates, users should:
+ * 1. Select the timestamp column
+ * 2. Right-click → Format Cells → Date
+ * 3. Choose desired date format (e.g., "3/14/12 1:30 PM")
+ */
+function convertToExcelSerialNumber(timestamp: any): number {
+  try {
+    // Handle different timestamp formats that might come from the backend
+    let date: Date;
+    
+    if (typeof timestamp === 'string') {
+      // Try to parse ISO string or other date formats
+      date = new Date(timestamp);
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (typeof timestamp === 'number') {
+      // Handle Unix timestamp
+      date = new Date(timestamp);
+    } else {
+      // Fallback for unknown formats
+      return 0; // Return 0 for invalid dates
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 0; // Return 0 for invalid dates
+    }
+    
+    // Convert to Excel serial number
+    // Excel serial number = (JS timestamp / (1000 * 60 * 60 * 24)) + 25569
+    // Where 25569 is the number of days between 1900-01-01 and 1970-01-01
+    const excelSerial = (date.getTime() / (1000 * 60 * 60 * 24)) + 25569;
+    
+    return excelSerial;
+  } catch (error) {
+    // If any error occurs during conversion, return 0
+    return 0;
+  }
+}
+
+/**
  * Searches for sensors in Seeq and pulls their data over a specified time range.
  * This is an array function that should be called on a range that can accommodate the output.
  * 
@@ -531,7 +577,7 @@ export function seeqServerInfo(url: string): string[][] {
  * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00")
  * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59")
  * @param grid Grid interval for data (e.g., "15min", "1h", "1d") - defaults to "15min"
- * @returns Array containing timestamp column and sensor data columns
+ * @returns Array containing timestamp column (as Excel serial numbers) and sensor data columns
  */
 export function seeqSensorData(
   sensorNames: string[][],
@@ -590,13 +636,15 @@ export function seeqSensorData(
       // Create header row with timestamp and sensor names
       const headers = ["Timestamp"].concat(result.data_columns || []);
       
-      // Create data rows
+      // Create data rows with formatted timestamps
       const dataRows = result.data.map((row: any) => {
         const timestamp = row.Timestamp || row.index || "N/A";
+        // Convert timestamp to Excel serial number for best compatibility
+        const excelSerialTimestamp = convertToExcelSerialNumber(timestamp);
         const values = (result.data_columns || []).map((col: string) => {
           return row[col] !== undefined ? row[col] : "N/A";
         });
-        return [timestamp].concat(values);
+        return [excelSerialTimestamp].concat(values);
       });
       
       return [headers].concat(dataRows);
@@ -661,17 +709,16 @@ export function seeqSensorSearch(sensorNames: string[][]): string[][] {
     
     if (result.success && result.search_results && result.search_results.length > 0) {
       // Create header row
-      const headers = ["Sensor Name", "Seeq Name", "ID", "Type", "Status", "Path"];
+      const headers = ["Name", "ID", "Datasource Name", "Value Unit Of Measure", "Description"];
       
       // Create data rows
       const dataRows = result.search_results.map((sensor: any) => {
         return [
-          sensor.Original_Name || sensor.Name || "N/A",
-          sensor.Name || "N/A",
-          sensor.ID || "Not Found",
-          sensor.Type || "N/A",
-          sensor.Status || "Unknown",
-          sensor.Path || "N/A"
+          sensor["Name"] || "N/A",
+          sensor["ID"] || "Not Found",
+          sensor["Datasource Name"] || "N/A",
+          sensor["Value Unit Of Measure"] || "N/A",
+          sensor["Description"] || "N/A"
         ];
       });
       

@@ -478,4 +478,3 @@ if __name__ == "__main__":
         print(json.dumps(result, indent=2))
     else:
         print("Usage: python seeq_auth.py <url> <access_key> <password>")
-        print("Example: python seeq_auth.py https://talosenergy.seeq.tech WoUknZw9SWyiI9K0Y3xu0A 0irkn3dDzvfwgjDXzwjqkHEcKb6zde")
