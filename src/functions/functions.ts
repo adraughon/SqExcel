@@ -8,84 +8,35 @@
 /**
  * SqExcel Custom Functions
  * 
- * IMPORTANT: Authentication with Seeq should be done through the SqExcel taskpane, NOT through Excel functions.
- * The SEEQ_AUTH, SEEQ_AUTH_STATUS, and SEEQ_REAUTH functions are disabled and will show instructions
- * to use the taskpane instead.
+ * This add-in provides 2 Excel functions for working with Seeq data:
+ * - SEARCH_SENSORS: Search for sensors in your Seeq environment
+ * - PULL_SENSOR_DATA: Pull time series data from Seeq sensors
  * 
- * To authenticate:
- * 1. Open the SqExcel taskpane
- * 2. Enter your Seeq server URL, access key, and password
- * 3. Click "Authenticate"
- * 4. Once authenticated, you can use SEEQ_SENSOR_DATA and other functions
+ * SETUP INSTRUCTIONS:
+ * 1. Create a Seeq Access Key:
+ *    - Go to your Seeq environment
+ *    - Click on your username in the top right
+ *    - Select "Create Access Key"
+ *    - Copy both the Key (ID) and Password - you'll need both!
+ * 
+ * 2. Authenticate in Excel:
+ *    - Open the SqExcel taskpane (if not visible, go to Insert > My Add-ins)
+ *    - Enter your Seeq server URL (e.g., https://your-server.seeq.tech)
+ *    - Enter the Access Key and Password from step 1
+ *    - Click "Authenticate"
+ *    - Once authenticated, you can use the Excel functions below
+ * 
+ * 3. Using the Functions:
+ *    - SEARCH_SENSORS: =SEARCH_SENSORS(A1:C1) where A1:C1 contains sensor names
+ *    - PULL_SENSOR_DATA: =PULL_SENSOR_DATA(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59","15min")
+ * 
+ * TROUBLESHOOTING:
+ * - If you see "#NAME?" errors, make sure the add-in is properly loaded
+ * - If authentication fails, check your Seeq server URL and credentials
+ * - If data doesn't load, verify your sensor names exist in Seeq
+ * - For detailed diagnostics, run a connection test in the taskpane
  */
 
-/**
- * Adds two numbers.
- * @customfunction
- * @param first First number
- * @param second Second number
- * @returns The sum of the two numbers.
- */
-export function add(first: number, second: number): number {
-  return first + second;
-}
-
-/**
- * Displays the current time once a second.
- * @customfunction
- * @param invocation Custom function handler
- */
-export function clock(invocation: CustomFunctions.StreamingInvocation<string>): void {
-  const timer = setInterval(() => {
-    const time = currentTime();
-    invocation.setResult(time);
-  }, 1000);
-
-  invocation.onCanceled = () => {
-    clearInterval(timer);
-  };
-}
-
-/**
- * Returns the current time.
- * @returns String with the current time formatted for the current locale.
- */
-export function currentTime(): string {
-  return new Date().toLocaleTimeString();
-}
-
-/**
- * Increments a value once a second.
- * @customfunction
- * @param incrementBy Amount to increment
- * @param invocation Custom function handler
- */
-export function increment(
-  incrementBy: number,
-  invocation: CustomFunctions.StreamingInvocation<number>
-): void {
-  let result = 0;
-  const timer = setInterval(() => {
-    result += incrementBy;
-    invocation.setResult(result);
-  }, 1000);
-
-  invocation.onCanceled = () => {
-    clearInterval(timer);
-  };
-}
-
-/**
- * Writes a message to console.log().
- * @customfunction LOG
- * @param message String to write.
- * @returns String to write.
- */
-export function logMessage(message: string): string {
-  console.log(message);
-
-  return message;
-}
 
 // Backend server configuration
 const BACKEND_URL = 'https://sqexcel.up.railway.app';
@@ -181,349 +132,6 @@ function callBackendSync(endpoint: string, data: any = null): any {
   }
 }
 
-///**
-// * Authenticates with a Seeq server using access key and password.
-// * This function will attempt to authenticate synchronously.
-// * 
-// * @customfunction SEEQ_AUTH
-// * @param url Seeq server URL (e.g., "https://your-server.seeq.tech")
-// * @param accessKey Seeq access key
-// * @param password Seeq password
-// * @param authProvider Authentication provider (default: "Seeq")
-// * @param ignoreSslErrors Whether to ignore SSL errors (default: false)
-// * @returns Array containing authentication result
-// */
-/*
-export function seeqAuth(
-  url: string, 
-  accessKey: string, 
-  password: string, 
-  authProvider: string = "Seeq", 
-  ignoreSslErrors: boolean = false
-): string[][] {
-  try {
-    // Validate inputs
-    if (!url || !accessKey || !password) {
-      return [["Error: URL, access key, and password are required"]];
-    }
-    
-    // Call backend server
-    const result = callBackendSync('/api/seeq/auth', {
-      url, accessKey, password, authProvider, ignoreSslErrors
-    });
-    
-    if (result.success) {
-      return [
-        ["Authentication successful"],
-        ["User: " + (result.user || accessKey.substring(0, 8) + "...")],
-        ["Server: " + (result.server_url || url)],
-        ["Status: " + (result.message || "Authenticated")],
-        ["Note: Credentials stored for future use"]
-      ];
-    } else {
-      // Check if backend server is not running
-      if (result.error && result.error.includes('Failed to fetch') || result.error.includes('NetworkError')) {
-        return [
-          ["Backend server not running"],
-          ["Please start the backend server:"],
-          ["1. Open terminal in the backend folder"],
-          ["2. Run: npm install && npm start"],
-          ["3. Then use this function again"]
-        ];
-      }
-      
-      // Check for specific network errors
-      if (result.error && result.error.includes('Backend request failed')) {
-        return [
-          ["Network connection failed"],
-          ["Error: " + result.error],
-          ["Details: " + (result.details || "No additional details")],
-          ["URL: " + (result.url || "Unknown")],
-          ["Please check:"],
-          ["1. Backend server is running on port 3000"],
-          ["2. No firewall blocking localhost"],
-          ["3. Excel can access localhost"]
-        ];
-      }
-      
-      return [
-        ["Authentication failed"],
-        ["Error: " + (result.error || result.message || "Unknown error")],
-        ["Details: " + (result.details || "No additional details")],
-        ["URL: " + (result.url || "Unknown")],
-        ["Please check Python backend and SPy installation"]
-      ];
-    }
-    
-  } catch (error) {
-    return [["Error: " + (error instanceof Error ? error.message : 'Unknown error')]];
-  }
-}
-*/
-
-// SEEQ_AUTH function is now disabled - use the taskpane for authentication instead
-export function seeqAuth(
-  url: string, 
-  accessKey: string, 
-  password: string, 
-  authProvider: string = "Seeq", 
-  ignoreSslErrors: boolean = false
-): string[][] {
-  return [
-   // ["SEEQ_AUTH function is disabled"],
-            ["Please use the SqExcel taskpane for authentication:"],
-        ["1. Open the SqExcel taskpane"],
-    ["2. Enter your Seeq credentials"],
-    ["3. Click 'Authenticate'"],
-    ["4. Then use SEEQ_SENSOR_DATA function"]
-  ];
-}
-
-///**
-// * Gets the current Seeq authentication status.
-// * @customfunction SEEQ_AUTH_STATUS
-// * @returns String indicating authentication status.
-// */
-/*
-export function seeqAuthStatus(): string[][] {
-  try {
-    // Try to get stored credentials
-    const credentials = getStoredCredentials();
-    
-    if (credentials) {
-      return [
-        ["Authentication Status: Credentials Available"],
-        ["Server: " + credentials.url],
-        ["Access Key: " + credentials.accessKey.substring(0, 8) + "..."],
-        ["Saved: " + new Date(credentials.timestamp).toLocaleString()],
-        ["Note: Use SEEQ_AUTH to test authentication"]
-      ];
-    } else {
-      return [
-        ["Authentication Status: No Credentials"],
-        ["Message: Please use the SqExcel taskpane to authenticate first"],
-        ["Note: Backend server must be running"]
-      ];
-    }
-    
-  } catch (error) {
-    return [["Error: " + (error instanceof Error ? error.message : 'Unknown error')]];
-  }
-}
-*/
-
-// SEEQ_AUTH_STATUS function is now disabled - use the taskpane for authentication status
-export function seeqAuthStatus(): string[][] {
-  return [
-   // ["SEEQ_AUTH_STATUS function is disabled"],
-            ["Please use the SqExcel taskpane to check authentication:"],
-        ["1. Open the SqExcel taskpane"],
-    ["2. Check the authentication status displayed"],
-    ["3. If not authenticated, enter credentials and click 'Authenticate'"]
-  ];
-}
-
-/**
- * Gets the current Python/SPy authentication status.
- * @customfunction SEEQ_PYTHON_AUTH_STATUS
- * @returns String indicating Python authentication status.
- */
-export function seeqPythonAuthStatus(): string[][] {
-  try {
-    // Call backend server to check Python authentication status
-    const result = callBackendSync('/api/seeq/auth/python-status');
-    
-    if (result.success) {
-      if (result.isAuthenticated) {
-        return [
-          ["Python Authentication Status: Authenticated"],
-          ["User: " + (result.user || "Unknown")],
-          ["Status: " + (result.message || "Success")]
-        ];
-      } else {
-        return [
-          ["Python Authentication Status: Not Authenticated"],
-          ["Message: " + (result.message || "Not authenticated")]
-        ];
-      }
-    } else {
-      return [
-        ["Python Authentication Status: Error"],
-        ["Error: " + (result.error || result.message || "Unknown error")]
-      ];
-    }
-    
-  } catch (error) {
-    return [["Error: " + (error instanceof Error ? error.message : 'Unknown error')]];
-  }
-}
-
-/**
- * Re-authenticates with Seeq using stored credentials.
- * This can be used if authentication expires or fails.
- * @customfunction SEEQ_REAUTH
- * @returns String indicating re-authentication result.
- */
-/*
-export function seeqReauth(): string[][] {
-  try {
-    // Try to get stored credentials
-    const credentials = getStoredCredentials();
-    
-    if (!credentials) {
-      return [
-        ["Re-authentication failed"],
-        ["Error: No stored credentials"],
-        ["Please use the SqExcel taskpane to authenticate first"]
-      ];
-    }
-    
-    // Call backend server to re-authenticate
-    const result = callBackendSync('/api/seeq/auth', {
-      url: credentials.url,
-      accessKey: credentials.accessKey,
-      password: credentials.password,
-      authProvider: "Seeq",
-      ignoreSslErrors: credentials.ignoreSsl
-    });
-    
-    if (result.success) {
-      return [
-        ["Re-authentication successful"],
-        ["User: " + (result.user || "Unknown")],
-        ["Server: " + (result.user || "Unknown")],
-        ["Status: " + (result.message || "Re-authenticated")]
-      ];
-    } else {
-      return [
-        ["Re-authentication failed"],
-        ["Error: " + (result.error || result.message || "Unknown error")]
-      ];
-    }
-    
-  } catch (error) {
-    return [["Error: " + (error instanceof Error ? error.message : 'Unknown error')]];
-  }
-}
-*/
-
-// SEEQ_REAUTH function is now disabled - use the taskpane for re-authentication
-export function seeqReauth(): string[][] {
-  return [
-    ["SEEQ_REAUTH function is disabled"],
-            ["Please use the SqExcel taskpane for re-authentication:"],
-        ["1. Open the SqExcel taskpane"],
-    ["2. If credentials are expired, re-enter them"],
-    ["3. Click 'Authenticate' to re-authenticate"]
-  ];
-}
-
-/**
- * Tests connection to a Seeq server.
- * @customfunction SEEQ_TEST_CONNECTION
- * @param url Seeq server URL
- * @returns String indicating connection status.
- */
-export function seeqTestConnection(url: string): string[][] {
-  try {
-    // Validate input
-    if (!url) {
-      return [["Error: Server URL is required"]];
-    }
-    
-    // Call backend server
-    const result = callBackendSync('/api/seeq/test-connection', { url });
-    
-    if (result.success) {
-      return [
-        ["Connection Test: Successful"],
-        ["Server: " + url],
-        ["Status: " + (result.message || "Server is reachable")],
-        ["Status Code: " + (result.status_code || "N/A")]
-      ];
-    } else {
-      // Check if backend server is not running
-      if (result.error && result.error.includes('Failed to fetch') || result.error.includes('NetworkError')) {
-        return [
-          ["Backend server not running"],
-          ["Please start the backend server:"],
-          ["1. Open terminal in the backend folder"],
-          ["2. Run: npm install && npm start"],
-          ["3. Then use this function again"]
-        ];
-      }
-      
-      return [
-        ["Connection Test: Failed"],
-        ["Server: " + url],
-        ["Error: " + (result.error || result.message || "Unknown error")]
-      ];
-    }
-    
-  } catch (error) {
-    return [["Error: " + (error instanceof Error ? error.message : 'Unknown error')]];
-  }
-}
-
-/**
- * Gets Seeq server information.
- * @customfunction SEEQ_SERVER_INFO
- * @param url Seeq server URL
- * @returns String containing server information.
- */
-export function seeqServerInfo(url: string): string[][] {
-  try {
-    // Validate input
-    if (!url) {
-      return [["Error: Server URL is required"]];
-    }
-    
-    // Call backend server
-    const result = callBackendSync('/api/seeq/server-info', { url });
-    
-    if (result.success) {
-      const serverInfo = result.server_info;
-      const infoRows: string[][] = [
-        ["Server Information for: " + url],
-        ["Status: " + (serverInfo.status || "Unknown")],
-        ["Message: " + result.message]
-      ];
-      
-      // Add additional server info if available
-      if (serverInfo.version) {
-        infoRows.push(["Version: " + serverInfo.version]);
-      }
-      if (serverInfo.name) {
-        infoRows.push(["Name: " + serverInfo.name]);
-      }
-      if (serverInfo.description) {
-        infoRows.push(["Description: " + serverInfo.description]);
-      }
-      
-      return infoRows;
-    } else {
-      // Check if backend server is not running
-      if (result.error && result.error.includes('Failed to fetch') || result.error.includes('NetworkError')) {
-        return [
-          ["Backend server not running"],
-          ["Please start the backend server:"],
-          ["1. Open terminal in the backend folder"],
-          ["2. Run: npm install && npm start"],
-          ["3. Then use this function again"]
-        ];
-      }
-      
-      return [
-        ["Failed to get server info"],
-        ["Error: " + (result.error || result.message || "Unknown error")],
-        ["Server: " + url]
-      ];
-    }
-    
-  } catch (error) {
-    return [["Error: " + (error instanceof Error ? error.message : 'Unknown error')]];
-  }
-}
 
 /**
  * Helper function to convert timestamps to Excel serial numbers
@@ -572,17 +180,17 @@ function convertToExcelSerialNumber(timestamp: any): number {
 }
 
 /**
- * Searches for sensors in Seeq and pulls their data over a specified time range.
+ * Pulls time series data from Seeq sensors over a specified time range.
  * This is an array function that should be called on a range that can accommodate the output.
  * 
- * @customfunction SEEQ_SENSOR_DATA
+ * @customfunction PULL_SENSOR_DATA
  * @param sensorNames Range containing sensor names (e.g., B1:D1)
  * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00")
  * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59")
  * @param grid Grid interval for data (e.g., "15min", "1h", "1d") - defaults to "15min"
  * @returns Array containing timestamp column (as Excel serial numbers) and sensor data columns
  */
-export function seeqSensorData(
+export function PULL_SENSOR_DATA(
   sensorNames: string[][],
   startDatetime: string,
   endDatetime: string,
@@ -632,7 +240,7 @@ export function seeqSensorData(
       accessKey: authCredentials.accessKey,
       password: authCredentials.password,
       authProvider: "Seeq",
-      ignoreSslErrors: authCredentials.ignoreSsl
+      ignoreSslErrors: false
     });
     
     if (result.success && result.data && result.data.length > 0) {
@@ -679,11 +287,11 @@ export function seeqSensorData(
 /**
  * Searches for sensors in Seeq without pulling data.
  * 
- * @customfunction SEEQ_SEARCH_SENSORS
+ * @customfunction SEARCH_SENSORS
  * @param sensorNames Range containing sensor names (e.g., B1:D1)
  * @returns Array containing search results for each sensor
  */
-export function seeqSensorSearch(sensorNames: string[][]): string[][] {
+export function SEARCH_SENSORS(sensorNames: string[][]): string[][] {
   try {
     // Flatten the sensor names array and filter out empty cells
     const sensorNamesList = sensorNames
@@ -707,7 +315,7 @@ export function seeqSensorSearch(sensorNames: string[][]): string[][] {
       accessKey: searchCredentials.accessKey,
       password: searchCredentials.password,
       authProvider: "Seeq",
-      ignoreSslErrors: searchCredentials.ignoreSsl
+      ignoreSslErrors: false
     });
     
     if (result.success && result.search_results && result.search_results.length > 0) {
@@ -730,11 +338,7 @@ export function seeqSensorSearch(sensorNames: string[][]): string[][] {
       // Check if backend server is not running
       if (result.error && result.error.includes('Failed to fetch') || result.error.includes('NetworkError')) {
         return [
-          ["Backend server not running"],
-          ["Please start the backend server:"],
-          ["1. Open terminal in the backend folder"],
-          ["2. Run: npm install && npm start"],
-          ["3. Then use this function again"]
+          ["Backend server not running"]
         ];
       }
       

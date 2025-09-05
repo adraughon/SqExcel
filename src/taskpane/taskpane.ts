@@ -79,16 +79,11 @@ interface SeeqConnectionResult {
 
 // Seeq Authentication Functions
 function initializeSeeqAuth(): void {
-  const testConnectionBtn = document.getElementById("test-connection") as HTMLButtonElement;
   const authenticateBtn = document.getElementById("authenticate") as HTMLButtonElement;
   const logoutBtn = document.getElementById("logout") as HTMLButtonElement;
   const searchSensorsBtn = document.getElementById("search-sensors") as HTMLButtonElement;
   const pullDataBtn = document.getElementById("pull-data") as HTMLButtonElement;
 
-  if (testConnectionBtn) {
-    testConnectionBtn.onclick = testSeeqConnection;
-  }
-  
   if (authenticateBtn) {
     authenticateBtn.onclick = authenticateWithSeeq;
   }
@@ -113,48 +108,11 @@ function initializeSeeqAuth(): void {
   showAuthStatus(`Add-in Version: ${ADDIN_VERSION}`, "info");
 }
 
-async function testSeeqConnection(): Promise<void> {
-  const url = (document.getElementById("seeq-url") as HTMLInputElement)?.value;
-  
-  if (!url) {
-    showAuthStatus("Please enter a Seeq server URL", "error");
-    return;
-  }
-
-  showAuthStatus("Testing connection...", "loading");
-  
-  try {
-    // Create new API client and test connection
-    seeqClient = new SeeqAPIClient(url);
-    
-    // Test connection using the Railway app's test-connection endpoint
-    const result = await seeqClient.testConnection();
-    
-    if (result.success) {
-      showAuthStatus(result.message, "success");
-      
-      // Display comprehensive diagnostics
-      displayDiagnostics(result, null);
-      
-      // Update Excel function cache
-      updateExcelCache("auth", result);
-    } else {
-      showAuthStatus(result.message, "error");
-      
-      // Display error diagnostics
-      displayErrorDiagnostics(result);
-    }
-  } catch (error) {
-    showAuthStatus(`Connection test failed: ${error}`, "error");
-    displayErrorDiagnostics({ success: false, message: error.toString(), error: error.toString() });
-  }
-}
 
 async function authenticateWithSeeq(): Promise<void> {
   const url = (document.getElementById("seeq-url") as HTMLInputElement)?.value;
   const accessKey = (document.getElementById("seeq-access-key") as HTMLInputElement)?.value;
   const password = (document.getElementById("seeq-password") as HTMLInputElement)?.value;
-  const ignoreSsl = (document.getElementById("ignore-ssl") as HTMLInputElement)?.checked;
 
   if (!url || !accessKey || !password) {
     showAuthStatus("Please fill in all required fields", "error");
@@ -169,11 +127,11 @@ async function authenticateWithSeeq(): Promise<void> {
       seeqClient = new SeeqAPIClient(url);
     }
     
-    const result = await seeqClient.authenticate(accessKey, password, 'Seeq', ignoreSsl);
+    const result = await seeqClient.authenticate(accessKey, password, 'Seeq', false);
     
     if (result.success) {
       showAuthStatus("Authentication successful", "success");
-      saveCredentials(url, accessKey, password, ignoreSsl);
+      saveCredentials(url, accessKey, password, false);
       updateAuthUI(true);
       // Update Excel function cache
       updateExcelCache("auth", result);
@@ -286,7 +244,6 @@ function logoutFromSeeq(): void {
   (document.getElementById("seeq-url") as HTMLInputElement).value = "";
   (document.getElementById("seeq-access-key") as HTMLInputElement).value = "";
   (document.getElementById("seeq-password") as HTMLInputElement).value = "";
-  (document.getElementById("ignore-ssl") as HTMLInputElement).checked = false;
 }
 
 function showAuthStatus(message: string, type: "success" | "error" | "info" | "loading" | "warning"): void {
@@ -298,16 +255,13 @@ function showAuthStatus(message: string, type: "success" | "error" | "info" | "l
 }
 
 function updateAuthUI(isAuthenticated: boolean): void {
-  const testBtn = document.getElementById("test-connection") as HTMLButtonElement;
   const authBtn = document.getElementById("authenticate") as HTMLButtonElement;
   const logoutBtn = document.getElementById("logout") as HTMLButtonElement;
   const urlInput = document.getElementById("seeq-url") as HTMLInputElement;
   const accessKeyInput = document.getElementById("seeq-access-key") as HTMLInputElement;
   const passwordInput = document.getElementById("seeq-password") as HTMLInputElement;
-  const sslCheckbox = document.getElementById("ignore-ssl") as HTMLInputElement;
 
   if (isAuthenticated) {
-    testBtn.style.display = "none";
     authBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
     
@@ -315,9 +269,7 @@ function updateAuthUI(isAuthenticated: boolean): void {
     urlInput.disabled = true;
     accessKeyInput.disabled = true;
     passwordInput.disabled = true;
-    sslCheckbox.disabled = true;
   } else {
-    testBtn.style.display = "inline-block";
     authBtn.style.display = "inline-block";
     logoutBtn.style.display = "none";
     
@@ -325,7 +277,6 @@ function updateAuthUI(isAuthenticated: boolean): void {
     urlInput.disabled = false;
     accessKeyInput.disabled = false;
     passwordInput.disabled = false;
-    sslCheckbox.disabled = false;
   }
 }
 
@@ -334,7 +285,7 @@ function saveCredentials(url: string, accessKey: string, password: string, ignor
     url,
     accessKey,
     password,
-    ignoreSsl,
+    ignoreSsl: false,
     timestamp: new Date().toISOString()
   };
   
@@ -352,7 +303,6 @@ function loadSavedCredentials(): void {
       (document.getElementById("seeq-url") as HTMLInputElement).value = credentials.url || "";
       (document.getElementById("seeq-access-key") as HTMLInputElement).value = credentials.accessKey || "";
       (document.getElementById("seeq-password") as HTMLInputElement).value = credentials.password || "";
-      (document.getElementById("ignore-ssl") as HTMLInputElement).checked = credentials.ignoreSsl || false;
       
       // Check if credentials are still valid (less than 24 hours old)
       const timestamp = new Date(credentials.timestamp);
