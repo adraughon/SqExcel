@@ -127,24 +127,14 @@ async function testSeeqConnection(): Promise<void> {
     // Create new API client and test connection
     seeqClient = new SeeqAPIClient(url);
     
-    // Test basic connection first
+    // Test connection using the Railway app's test-connection endpoint
     const result = await seeqClient.testConnection();
     
     if (result.success) {
       showAuthStatus(result.message, "success");
       
-      // Test authentication endpoint specifically
-      showAuthStatus("Testing authentication endpoint...", "loading");
-      const authEndpointResult = await seeqClient.testAuthEndpoint();
-      
-      if (authEndpointResult.success) {
-        showAuthStatus(`${result.message} - ${authEndpointResult.message}`, "success");
-      } else {
-        showAuthStatus(`${result.message} - Warning: ${authEndpointResult.message}`, "warning");
-      }
-      
       // Display comprehensive diagnostics
-      displayDiagnostics(result, authEndpointResult);
+      displayDiagnostics(result, null);
       
       // Update Excel function cache
       updateExcelCache("auth", result);
@@ -491,7 +481,7 @@ function displayDataResults(result: any): void {
 }
 
 // Display comprehensive diagnostics
-function displayDiagnostics(connectionResult: any, authResult: any): void {
+function displayDiagnostics(connectionResult: any, authResult: any = null): void {
   const diagnosticsDiv = document.getElementById("diagnostics");
   if (!diagnosticsDiv) return;
 
@@ -565,7 +555,7 @@ function displayDiagnostics(connectionResult: any, authResult: any): void {
   }
 
   // Auth endpoint test results
-  if (authResult.diagnostics) {
+  if (authResult && authResult.diagnostics) {
     html += `
       <div class="diagnostic-section">
         <h4>Authentication Endpoint Test</h4>
