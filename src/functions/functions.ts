@@ -91,15 +91,15 @@ export function logMessage(message: string): string {
 const BACKEND_URL = 'https://sqexcel.up.railway.app';
 
 /**
- * Helper function to get stored Seeq credentials from the backend
+ * Helper function to get stored Seeq credentials from localStorage
  */
 function getStoredCredentials(): any {
   try {
-    // Get credentials from the backend server
-    const result = callBackendSync('/api/seeq/credentials');
-    
-    if (result.success && result.credentials) {
-      const credentials = result.credentials;
+    // Get credentials from localStorage (same storage used by taskpane)
+    const saved = localStorage.getItem("seeq_credentials");
+    if (saved) {
+      const credentials = JSON.parse(saved);
+      
       // Check if credentials are still valid (not expired)
       const savedTime = new Date(credentials.timestamp);
       const now = new Date();
@@ -107,11 +107,14 @@ function getStoredCredentials(): any {
       
       if (hoursDiff < 24) { // Credentials valid for 24 hours
         return credentials;
+      } else {
+        // Credentials expired, remove them
+        localStorage.removeItem("seeq_credentials");
       }
     }
     return null;
   } catch (error) {
-    console.log("Could not get stored credentials from backend:", error);
+    console.log("Could not get stored credentials from localStorage:", error);
     return null;
   }
 }
@@ -616,7 +619,7 @@ export function seeqSensorData(
         // Check if we have stored credentials
     const authCredentials = getStoredCredentials();
     if (!authCredentials) {
-      return [["Error: Not authenticated to Seeq. Please use the TSFlow taskpane to authenticate first."]];
+      return [["Error: Not authenticated to Seeq. Please use the SqExcel taskpane to authenticate first."]];
     }
     
     // Call backend server with credentials
@@ -694,7 +697,7 @@ export function seeqSensorSearch(sensorNames: string[][]): string[][] {
     // Check if we have stored credentials
     const searchCredentials = getStoredCredentials();
     if (!searchCredentials) {
-      return [["Error: Not authenticated to Seeq. Please use SqExcel taskpane to authenticate first."]];
+      return [["Error: Not authenticated to Seeq. Please use the SqExcel taskpane to authenticate first."]];
     }
     
     // Call backend server with credentials
