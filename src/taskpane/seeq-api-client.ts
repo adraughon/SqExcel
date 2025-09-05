@@ -93,7 +93,6 @@ export class SeeqAPIClient {
     };
     
     this.diagnosticLog.push(logEntry);
-    console.log(`[${category}] ${message}`, data || '');
   }
 
   /**

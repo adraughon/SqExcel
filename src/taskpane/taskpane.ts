@@ -20,29 +20,21 @@ let seeqClient: SeeqAPIClient | null = null;
 // Load version information from version.json
 async function loadVersionInfo(): Promise<void> {
   try {
-    console.log('Attempting to load version info...');
-    
     // Try relative path first, then fallback to full URL
     let response = await fetch('./version.json');
-    console.log('Relative path response status:', response.status);
     
     if (!response.ok) {
-      console.log('Relative path failed, trying full URL...');
       // Fallback to full URL if relative path fails
       response = await fetch('https://adraughon.github.io/SqExcel/version.json');
-      console.log('Full URL response status:', response.status);
     }
     
     if (response.ok) {
       const versionData = await response.json();
-      console.log('Version data loaded:', versionData);
-      ADDIN_VERSION = `${versionData.version} - ${versionData.description}`;
+      ADDIN_VERSION = versionData.version;
     } else {
-      console.error('Failed to load version.json, status:', response.status);
       ADDIN_VERSION = "Version info unavailable";
     }
   } catch (error) {
-    console.error('Failed to load version info:', error);
     ADDIN_VERSION = "Version info unavailable";
   }
 }
@@ -104,7 +96,6 @@ function initializeSeeqAuth(): void {
   loadSavedCredentials();
   
   // Display version number to prove we're using new code
-  console.log(`SqExcel Add-in Version: ${ADDIN_VERSION}`);
   showAuthStatus(`Add-in Version: ${ADDIN_VERSION}`, "info");
 }
 
@@ -323,7 +314,6 @@ function loadSavedCredentials(): void {
         localStorage.removeItem("seeq_credentials");
       }
     } catch (error) {
-      console.error("Failed to load saved credentials:", error);
       localStorage.removeItem("seeq_credentials");
     }
   }
@@ -341,11 +331,10 @@ function updateExcelCache(operationType: string, data: any): void {
       range.values = [[cacheUpdate]];
       await context.sync();
     }).catch(error => {
-      console.log("Could not update Excel cache automatically:", error);
-      console.log("Manual cache update required:", cacheUpdate);
+      // Silent fail for cache update
     });
   } catch (error) {
-    console.error("Failed to update Excel cache:", error);
+    // Silent fail for cache update
   }
 }
 

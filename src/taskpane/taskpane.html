@@ -53,10 +53,72 @@
             <div id="auth-status" class="auth-status"></div>
         </div>
 
-        <!-- Diagnostics Section -->
+        <!-- User Guide Section -->
         <div id="diagnostics" class="diagnostics-section">
             <div class="diagnostics-panel">
-                <p>Enter your Seeq credentials above and click "Authenticate" to get started. If you encounter issues, check your Seeq server URL and access key credentials.</p>
+                <h3>📋 Getting Started</h3>
+                
+                <h4>🔑 Step 1: Create a Seeq Access Key</h4>
+                <ol>
+                    <li>Go to your Seeq environment in your web browser</li>
+                    <li>Click on your username in the top right corner</li>
+                    <li>Select "Access Keys" from the dropdown menu</li>
+                    <li>Click "Create Access Key"</li>
+                    <li>Give it a name (e.g., "Excel Integration")</li>
+                    <li>Copy both the <strong>Key ID</strong> and <strong>Password</strong> - you'll need both!</li>
+                </ol>
+                
+                <h4>🔐 Step 2: Authenticate in Excel</h4>
+                <ol>
+                    <li>Enter your Seeq server URL above (e.g., https://your-server.seeq.tech)</li>
+                    <li>Enter the Access Key ID and Password from Step 1</li>
+                    <li>Click "Authenticate"</li>
+                    <li>Once successful, you can use the Excel functions below!</li>
+                </ol>
+                
+                <h4>⚡ Step 3: Use the Excel Functions</h4>
+                <div class="function-examples">
+                    <div class="function-example">
+                        <h5>🔍 SEARCH_SENSORS</h5>
+                        <p>Find sensors in your Seeq environment:</p>
+                        <code>=SEARCH_SENSORS(A1:C1)</code>
+                        <p><small>Where A1:C1 contains sensor names like "Temperature", "Pressure", etc.</small></p>
+                        <div class="function-returns">
+                            <strong>Returns:</strong> A table with columns:
+                            <ul>
+                                <li><strong>Name:</strong> The actual sensor name in Seeq</li>
+                                <li><strong>ID:</strong> Unique sensor identifier</li>
+                                <li><strong>Datasource Name:</strong> Where the sensor data comes from</li>
+                                <li><strong>Value Unit Of Measure:</strong> Units (e.g., °C, PSI, etc.)</li>
+                                <li><strong>Description:</strong> Sensor description if available</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="function-example">
+                        <h5>📊 PULL_SENSOR_DATA</h5>
+                        <p>Get time series data from sensors:</p>
+                        <code>=PULL_SENSOR_DATA(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59","15min")</code>
+                        <p><small>Parameters: sensor names, start time, end time, grid interval (15min, 1h, 1d, etc.)</small></p>
+                        <div class="function-returns">
+                            <strong>Returns:</strong> A time series table with:
+                            <ul>
+                                <li><strong>Timestamp column:</strong> Time points (as Excel serial numbers - format as dates to see readable times)</li>
+                                <li><strong>Data columns:</strong> One column per sensor with actual measurement values</li>
+                                <li><strong>Grid spacing:</strong> Data points at your specified interval (15min, 1h, etc.)</li>
+                            </ul>
+                            <p><em>Note: Timestamps appear as large numbers - select the timestamp column and format as Date to see readable times!</em></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4>❓ Troubleshooting</h4>
+                <ul>
+                    <li><strong>#NAME? errors:</strong> Make sure the add-in is properly loaded</li>
+                    <li><strong>Authentication fails:</strong> Check your Seeq server URL and credentials</li>
+                    <li><strong>No data returned:</strong> Verify your sensor names exist in Seeq</li>
+                    <li><strong>Need help?</strong> <a href="mailto:austin@radialflow.net">Contact Us</a></li>
+                </ul>
             </div>
         </div>
 

@@ -1,13 +1,13 @@
 {
-  "version": "1.0.32",
-  "description": "Fixed Excel integration: Added missing endpoints and improved credential storage",
+  "version": "1.0.34",
+  "description": "Enhanced user experience: Improved UI, removed console logging, and added comprehensive user guide",
   "buildDate": "2025-09-05",
   "changes": [
-    "Fixed Excel function integration - added missing /api/seeq/credentials, /api/seeq/search-sensors, /api/seeq/sensor-data endpoints",
-    "Replaced global credential storage with Flask session-based storage for better security",
-    "Added automatic credential storage from taskpane authentication for Excel functions",
-    "Added structured logging for production monitoring",
-    "Fixed authentication flow between taskpane and Excel functions",
-    "Excel functions now work properly with SEEQ_SEARCH_SENSORS and SEEQ_SENSOR_DATA"
+    "Enhanced user guide with step-by-step access key setup instructions",
+    "Added detailed function examples and usage instructions",
+    "Removed all console logging for better security in Excel environment",
+    "Simplified version display to show only version number",
+    "Added contact support link for user assistance",
+    "Improved UI styling for better readability and user experience"
   ]
 }

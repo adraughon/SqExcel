@@ -65,7 +65,6 @@ function getStoredCredentials(): any {
     }
     return null;
   } catch (error) {
-    console.log("Could not get stored credentials from localStorage:", error);
     return null;
   }
 }
@@ -79,15 +78,11 @@ function callBackendSync(endpoint: string, data: any = null): any {
     const xhr = new XMLHttpRequest();
     const url = `${BACKEND_URL}${endpoint}`;
     
-    console.log(`[DEBUG] Attempting to connect to: ${url}`);
-    console.log(`[DEBUG] Endpoint: ${endpoint}`);
-    console.log(`[DEBUG] Data:`, data);
     
     // Use synchronous request (deprecated but works in Excel custom functions)
     xhr.open(data ? 'POST' : 'GET', url, false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     
-    console.log(`[DEBUG] Request opened, sending...`);
     
     if (data) {
       xhr.send(JSON.stringify(data));
@@ -95,17 +90,12 @@ function callBackendSync(endpoint: string, data: any = null): any {
       xhr.send();
     }
     
-    console.log(`[DEBUG] Response received - Status: ${xhr.status}, StatusText: ${xhr.statusText}`);
-    console.log(`[DEBUG] Response headers:`, xhr.getAllResponseHeaders());
-    console.log(`[DEBUG] Response text:`, xhr.responseText.substring(0, 200) + '...');
     
     if (xhr.status === 200) {
       try {
         const parsed = JSON.parse(xhr.responseText);
-        console.log(`[DEBUG] Successfully parsed response:`, parsed);
         return parsed;
       } catch (e) {
-        console.log(`[DEBUG] Failed to parse response:`, e);
         return {
           success: false,
           error: `Failed to parse response: ${(e as Error).message}`,
@@ -113,7 +103,6 @@ function callBackendSync(endpoint: string, data: any = null): any {
         };
       }
     } else {
-      console.log(`[DEBUG] HTTP error: ${xhr.status} - ${xhr.statusText}`);
       return {
         success: false,
         error: `HTTP ${xhr.status}: ${xhr.statusText}`,
@@ -122,7 +111,6 @@ function callBackendSync(endpoint: string, data: any = null): any {
       };
     }
   } catch (error) {
-    console.log(`[DEBUG] Exception during request:`, error);
     return {
       success: false,
       error: `Backend request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
