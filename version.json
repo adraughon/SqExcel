@@ -1,5 +1,5 @@
 {
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Migrated SqExcelWeb proxy from Vercel to Railway for improved stability",
   "buildDate": "2025-09-05",
   "changes": [

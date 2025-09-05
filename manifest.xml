@@ -11,7 +11,7 @@
   <SupportUrl DefaultValue="https://github.com/adraughon/SqExcel"/>
   <AppDomains>
     <AppDomain>https://adraughon.github.io</AppDomain>
-    <AppDomain>https://sq-excel-web.vercel.app</AppDomain>
+    <AppDomain>https://sqexcel.up.railway.app</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Workbook"/>
