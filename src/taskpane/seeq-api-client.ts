@@ -342,12 +342,20 @@ export class SeeqAPIClient {
           server_url: data.server_url
         });
         
+        // Store credentials in backend for Excel functions to use
+        try {
+          await this.storeCredentialsForExcel();
+        } catch (storeError) {
+          console.warn('Failed to store credentials for Excel functions:', storeError);
+          // Don't fail the authentication if credential storage fails
+        }
+        
         return {
           success: true,
           message: data.message || `Successfully authenticated as ${accessKey}`,
           user: data.user || accessKey,
           server_url: data.server_url || this.seeqServerUrl,
-          token: this.authToken
+          token: this.authToken || undefined
         };
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -390,6 +398,35 @@ export class SeeqAPIClient {
         message: errorMessage,
         error: errorType
       };
+    }
+  }
+
+  /**
+   * Store credentials in backend for Excel functions to use
+   */
+  private async storeCredentialsForExcel(): Promise<void> {
+    if (!this.credentials) {
+      throw new Error('No credentials available to store');
+    }
+
+    const response = await fetch(`${this.proxyUrl}/api/seeq/credentials`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: this.seeqServerUrl,
+        accessKey: this.credentials.accessKey,
+        password: this.credentials.password,
+        authProvider: this.credentials.authProvider,
+        ignoreSslErrors: this.credentials.ignoreSslErrors,
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Failed to store credentials: ${errorData.error || response.statusText}`);
     }
   }
 
@@ -605,6 +642,19 @@ export class SeeqAPIClient {
           status: response.status,
           statusText: response.statusText
         });
+      }
+      
+      // Clear credentials from backend for Excel functions
+      try {
+        await fetch(`${this.proxyUrl}/api/seeq/credentials`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      } catch (clearError) {
+        console.warn('Failed to clear credentials from backend:', clearError);
+        // Don't fail logout if credential clearing fails
       }
     } catch (error: any) {
       this.logDiagnostic('PROXY_LOGOUT_ERROR', 'Proxy logout error', {
