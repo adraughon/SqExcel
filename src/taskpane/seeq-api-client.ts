@@ -1,6 +1,6 @@
 /*
- * Seeq API Client for Direct REST API Calls
- * This replaces the Python backend with direct Seeq API communication
+ * Seeq API Client for Proxy Server (SqExcelWeb)
+ * This client communicates with the FastAPI proxy server to avoid CORS issues
  */
 
 export interface SeeqAuthResult {
@@ -17,6 +17,19 @@ export interface SeeqConnectionResult {
   message: string;
   status_code?: number;
   error?: string;
+  diagnostics?: {
+    cors_headers?: any;
+    response_headers?: any;
+    request_timing?: number;
+    user_agent?: string;
+    origin?: string;
+    app_domain?: string;
+    network_type?: string;
+    ssl_info?: any;
+    cors_analysis?: any;
+    error_analysis?: any;
+    cors_status?: string;
+  };
 }
 
 export interface SeeqSensor {
@@ -52,171 +65,237 @@ export interface SeeqDataResult {
 }
 
 export class SeeqAPIClient {
-  private baseUrl: string;
+  private proxyUrl: string;
+  private seeqServerUrl: string;
   private authToken: string | null = null;
   private credentials: any = null;
+  private diagnosticLog: any[] = [];
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
+  constructor(seeqServerUrl: string) {
+    this.seeqServerUrl = seeqServerUrl.replace(/\/$/, ''); // Remove trailing slash
+    this.proxyUrl = 'https://sq-excel-web.vercel.app';
+    this.logDiagnostic('CLIENT_INIT', `SeeqAPIClient initialized with proxy: ${this.proxyUrl}, Seeq server: ${this.seeqServerUrl}`);
   }
 
   /**
-   * Test the authentication endpoint specifically
+   * Log diagnostic information for debugging
    */
-  async testAuthEndpoint(): Promise<SeeqConnectionResult> {
+  private logDiagnostic(category: string, message: string, data?: any): void {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      category,
+      message,
+      data,
+      userAgent: navigator.userAgent,
+      origin: window.location.origin,
+      appDomain: this.detectAppDomain(),
+      networkInfo: this.getNetworkInfo()
+    };
+    
+    this.diagnosticLog.push(logEntry);
+    console.log(`[${category}] ${message}`, data || '');
+  }
+
+  /**
+   * Detect the current AppDomain context
+   */
+  private detectAppDomain(): string {
     try {
-      console.log(`Testing authentication endpoint: ${this.baseUrl}/api/auth/login`);
-      
-      // Test with OPTIONS request to check if the endpoint exists and CORS is configured
-      const response = await fetch(`${this.baseUrl}/api/auth/login`, {
-        method: 'OPTIONS',
-        headers: {
-          'Origin': window.location.origin,
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type'
-        }
-      });
-
-      console.log(`Auth endpoint OPTIONS response status: ${response.status}`);
-      console.log(`Auth endpoint CORS headers:`, {
-        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
-        'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
-        'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
-        'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
-      });
-
-      return {
-        success: true,
-        message: "Authentication endpoint is accessible",
-        status_code: response.status
-      };
-    } catch (error: any) {
-      console.error('Auth endpoint test error:', error);
-      return {
-        success: false,
-        message: `Authentication endpoint test failed: ${error.message}`,
-        error: error.message
-      };
+      if (typeof Office !== 'undefined' && Office.context) {
+        return `Office.js - ${Office.context.host || 'Unknown Host'}`;
+      }
+      if (window.location.protocol === 'https:') {
+        return 'HTTPS Web Context';
+      }
+      if (window.location.protocol === 'http:') {
+        return 'HTTP Web Context';
+      }
+      if (window.location.protocol === 'file:') {
+        return 'File Protocol Context';
+      }
+      return `Unknown Context - ${window.location.protocol}`;
+    } catch (error) {
+      return `Error detecting context: ${error}`;
     }
   }
 
   /**
-   * Test CORS preflight to the Seeq server
+   * Get network information
    */
-  async testCorsPreflight(): Promise<SeeqConnectionResult> {
+  private getNetworkInfo(): any {
     try {
-      console.log(`Testing CORS preflight to Seeq server: ${this.baseUrl}`);
-      
-      // Test with OPTIONS request to check CORS
-      const response = await fetch(`${this.baseUrl}/api/system/open-ping`, {
-        method: 'OPTIONS',
-        headers: {
-          'Origin': window.location.origin,
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'Content-Type'
-        }
-      });
-
-      console.log(`CORS preflight response status: ${response.status}`);
-      console.log(`CORS headers:`, {
-        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
-        'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
-        'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
-        'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
-      });
-
+      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
       return {
-        success: true,
-        message: "CORS preflight successful",
-        status_code: response.status
+        online: navigator.onLine,
+        connectionType: connection?.effectiveType || 'unknown',
+        downlink: connection?.downlink || 'unknown',
+        rtt: connection?.rtt || 'unknown'
       };
-    } catch (error: any) {
-      console.error('CORS preflight error:', error);
-      return {
-        success: false,
-        message: `CORS preflight failed: ${error.message}`,
-        error: error.message
-      };
+    } catch (error) {
+      return { online: navigator.onLine, error: error.toString() };
     }
   }
 
   /**
-   * Test connection to Seeq server without authentication
+   * Get comprehensive diagnostic information
+   */
+  getDiagnostics(): any {
+    return {
+      clientInfo: {
+        proxyUrl: this.proxyUrl,
+        seeqServerUrl: this.seeqServerUrl,
+        isAuthenticated: !!this.authToken,
+        diagnosticLogCount: this.diagnosticLog.length
+      },
+      environment: {
+        userAgent: navigator.userAgent,
+        origin: window.location.origin,
+        appDomain: this.detectAppDomain(),
+        networkInfo: this.getNetworkInfo(),
+        timestamp: new Date().toISOString()
+      },
+      recentLogs: this.diagnosticLog.slice(-20) // Last 20 log entries
+    };
+  }
+
+  /**
+   * Clear diagnostic logs
+   */
+  clearDiagnostics(): void {
+    this.diagnosticLog = [];
+    this.logDiagnostic('DIAGNOSTICS_CLEARED', 'Diagnostic logs cleared');
+  }
+
+  /**
+   * Test connection to the proxy server
    */
   async testConnection(): Promise<SeeqConnectionResult> {
+    const startTime = Date.now();
+    const url = `${this.proxyUrl}/api/seeq/test-connection`;
+    
+    this.logDiagnostic('PROXY_CONNECTION_TEST_START', `Testing connection to proxy server: ${this.proxyUrl}`, {
+      url,
+      seeqServerUrl: this.seeqServerUrl,
+      appDomain: this.detectAppDomain(),
+      networkInfo: this.getNetworkInfo()
+    });
+    
     try {
-      console.log(`Testing connection to Seeq server: ${this.baseUrl}`);
-      
-      // First test CORS preflight
-      const corsResult = await this.testCorsPreflight();
-      if (!corsResult.success) {
-        console.warn('CORS preflight failed, but continuing with connection test');
-      }
-      
-      const response = await fetch(`${this.baseUrl}/api/system/open-ping`, {
-        method: 'GET',
+      const response = await fetch(url, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          seeq_url: this.seeqServerUrl
+        })
       });
 
-      console.log(`Connection test response status: ${response.status}`);
-      console.log(`Response headers:`, response.headers);
+      const requestTime = Date.now() - startTime;
+      
+      // Log all response headers
+      const allHeaders: any = {};
+      response.headers.forEach((value, key) => {
+        allHeaders[key] = value;
+      });
+
+      this.logDiagnostic('PROXY_CONNECTION_RESPONSE', `Proxy connection test response received`, {
+        status: response.status,
+        statusText: response.statusText,
+        requestTime,
+        allHeaders,
+        url: response.url
+      });
 
       if (response.ok) {
-        console.log('Connection test successful');
+        const data = await response.json();
+        this.logDiagnostic('PROXY_CONNECTION_SUCCESS', 'Proxy connection test successful', data);
+        
         return {
           success: true,
-          message: "Server is reachable",
-          status_code: response.status
+          message: data.message || "Proxy server is reachable and can connect to Seeq",
+          status_code: response.status,
+          diagnostics: {
+            response_headers: allHeaders,
+            request_timing: requestTime,
+            user_agent: navigator.userAgent,
+            origin: window.location.origin,
+            app_domain: this.detectAppDomain(),
+            network_type: this.getNetworkInfo().connectionType,
+            cors_status: 'OK'
+          }
         };
       } else {
-        console.error(`Connection test failed with status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        this.logDiagnostic('PROXY_CONNECTION_FAILED', `Proxy connection test failed with status: ${response.status}`, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: allHeaders,
+          errorData
+        });
+        
         return {
           success: false,
-          message: `Server responded with status code: ${response.status}`,
-          status_code: response.status
+          message: errorData.message || `Proxy server responded with status code: ${response.status}`,
+          status_code: response.status,
+          error: errorData.error || `HTTP ${response.status}`,
+          diagnostics: {
+            response_headers: allHeaders,
+            request_timing: requestTime,
+            user_agent: navigator.userAgent,
+            origin: window.location.origin,
+            app_domain: this.detectAppDomain(),
+            network_type: this.getNetworkInfo().connectionType,
+            cors_status: 'OK'
+          }
         };
       }
     } catch (error: any) {
-      console.error('Connection test error details:', error);
+      const requestTime = Date.now() - startTime;
+      
+      this.logDiagnostic('PROXY_CONNECTION_ERROR', `Proxy connection test error`, {
+        error: error.message,
+        errorName: error.name,
+        errorStack: error.stack,
+        requestTime,
+        url
+      });
+      
+      let message = "Proxy connection test failed";
+      let errorType = "Unknown";
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        return {
-          success: false,
-          message: "Cannot connect to server - connection refused. This may be due to CORS restrictions or network issues.",
-          error: "ConnectionError"
-        };
+        message = "Cannot connect to proxy server - connection refused. This may be due to network issues.";
+        errorType = "ConnectionError";
       } else if (error.name === 'AbortError') {
-        return {
-          success: false,
-          message: "Connection timeout - the server took too long to respond.",
-          error: "Timeout"
-        };
+        message = "Connection timeout - the proxy server took too long to respond.";
+        errorType = "Timeout";
       } else if (error.message.includes('Failed to fetch')) {
-        return {
-          success: false,
-          message: "Connection failed - unable to reach the server. This may be due to CORS restrictions, SSL issues, or network problems.",
-          error: "FetchError"
-        };
-      } else if (error.message.includes('Load failed')) {
-        return {
-          success: false,
-          message: "Load failed - the connection request could not be completed. This may be due to CORS restrictions, SSL certificate issues, or network connectivity problems.",
-          error: "LoadError"
-        };
+        message = "Connection failed - unable to reach the proxy server. This may be due to network problems.";
+        errorType = "FetchError";
       } else {
-        return {
-          success: false,
-          message: `Connection test failed: ${error.message}`,
-          error: error.message
-        };
+        message = `Proxy connection test failed: ${error.message}`;
+        errorType = error.message;
       }
+      
+      return {
+        success: false,
+        message,
+        error: errorType,
+        diagnostics: {
+          request_timing: requestTime,
+          user_agent: navigator.userAgent,
+          origin: window.location.origin,
+          app_domain: this.detectAppDomain(),
+          network_type: this.getNetworkInfo().connectionType,
+          cors_status: 'OK'
+        }
+      };
     }
   }
 
   /**
-   * Authenticate with Seeq server
+   * Authenticate with Seeq server through proxy
    */
   async authenticate(accessKey: string, password: string, authProvider: string = 'Seeq', ignoreSslErrors: boolean = false): Promise<SeeqAuthResult> {
     try {
@@ -225,45 +304,57 @@ export class SeeqAPIClient {
         accessKey,
         password,
         authProvider,
-        ignoreSslErrors
+        ignoreSslErrors,
+        seeq_url: this.seeqServerUrl
       };
 
-      console.log(`Attempting to authenticate with Seeq server: ${this.baseUrl}`);
-      console.log(`Using access key: ${accessKey}, auth provider: ${authProvider}`);
+      this.logDiagnostic('PROXY_AUTH_START', `Attempting to authenticate through proxy: ${this.proxyUrl}`, {
+        seeqServerUrl: this.seeqServerUrl,
+        accessKey,
+        authProvider
+      });
 
-      // Try to authenticate using Seeq's REST API
-      const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+      const response = await fetch(`${this.proxyUrl}/api/seeq/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Include cookies for session management
         body: JSON.stringify({
+          seeq_url: this.seeqServerUrl,
           username: accessKey,
-          password: password
+          password: password,
+          auth_provider: authProvider,
+          ignore_ssl_errors: ignoreSslErrors
         })
       });
 
-      console.log(`Authentication response status: ${response.status}`);
-      console.log(`Response headers:`, response.headers);
+      this.logDiagnostic('PROXY_AUTH_RESPONSE', `Proxy authentication response received`, {
+        status: response.status,
+        statusText: response.statusText
+      });
 
       if (response.ok) {
-        // Seeq uses session-based authentication, so we don't get a token
-        // Instead, we rely on cookies/session
-        this.authToken = 'session'; // Placeholder to indicate we're authenticated
+        const data = await response.json();
+        this.authToken = data.token || 'authenticated';
         
-        console.log('Authentication successful');
+        this.logDiagnostic('PROXY_AUTH_SUCCESS', 'Proxy authentication successful', {
+          user: data.user,
+          server_url: data.server_url
+        });
         
         return {
           success: true,
-          message: `Successfully authenticated as ${accessKey}`,
-          user: accessKey,
-          server_url: this.baseUrl,
+          message: data.message || `Successfully authenticated as ${accessKey}`,
+          user: data.user || accessKey,
+          server_url: data.server_url || this.seeqServerUrl,
           token: this.authToken
         };
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Authentication failed with response:', errorData);
+        this.logDiagnostic('PROXY_AUTH_FAILED', 'Proxy authentication failed', {
+          status: response.status,
+          errorData
+        });
         
         return {
           success: false,
@@ -272,24 +363,23 @@ export class SeeqAPIClient {
         };
       }
     } catch (error: any) {
-      console.error('Authentication error details:', error);
+      this.logDiagnostic('PROXY_AUTH_ERROR', 'Proxy authentication error', {
+        error: error.message,
+        errorName: error.name
+      });
       
-      // Provide more specific error messages based on error type
       let errorMessage = 'Authentication failed';
       let errorType = 'Unknown';
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        errorMessage = 'Network error: Cannot connect to Seeq server. Please check the server URL and ensure it\'s accessible.';
+        errorMessage = 'Network error: Cannot connect to proxy server. Please check your internet connection.';
         errorType = 'NetworkError';
       } else if (error.name === 'AbortError') {
         errorMessage = 'Request timeout: The authentication request took too long. Please try again.';
         errorType = 'TimeoutError';
       } else if (error.message.includes('Failed to fetch')) {
-        errorMessage = 'Connection failed: Unable to reach the Seeq server. This may be due to CORS restrictions, network issues, or an invalid server URL.';
+        errorMessage = 'Connection failed: Unable to reach the proxy server. This may be due to network issues.';
         errorType = 'ConnectionError';
-      } else if (error.message.includes('Load failed')) {
-        errorMessage = 'Load failed: The authentication request could not be completed. This may be due to CORS restrictions, SSL certificate issues, or network connectivity problems.';
-        errorType = 'LoadError';
       } else {
         errorMessage = `Authentication failed: ${error.message}`;
         errorType = error.name || 'UnknownError';
@@ -304,7 +394,7 @@ export class SeeqAPIClient {
   }
 
   /**
-   * Search for sensors in Seeq
+   * Search for sensors in Seeq through proxy
    */
   async searchSensors(sensorNames: string[]): Promise<SeeqSearchResult> {
     if (!this.authToken && !this.credentials) {
@@ -318,75 +408,64 @@ export class SeeqAPIClient {
     }
 
     try {
-      // Use Seeq's items API to search for signals
-      const searchResults: SeeqSensor[] = [];
-      
-      for (const sensorName of sensorNames) {
-        try {
-          // Search for items with the sensor name
-          const response = await fetch(`${this.baseUrl}/api/items?Name=${encodeURIComponent(sensorName)}&Type=Signal`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include' // Include session cookies
-          });
+      this.logDiagnostic('PROXY_SEARCH_START', `Searching for sensors through proxy`, {
+        sensorNames,
+        seeqServerUrl: this.seeqServerUrl
+      });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data && data.length > 0) {
-              // Map Seeq API response to our format
-              data.forEach((result: any) => {
-                searchResults.push({
-                  ID: result.Id || result.id,
-                  Name: result.Name || result.name,
-                  Type: result.Type || 'Signal',
-                  Original_Name: sensorName,
-                  Status: 'Found'
-                });
-              });
-            } else {
-              // Sensor not found
-              searchResults.push({
-                ID: '',
-                Name: sensorName,
-                Type: 'Signal',
-                Original_Name: sensorName,
-                Status: 'Not Found'
-              });
-            }
-          } else {
-            // Search failed for this sensor
-            searchResults.push({
-              ID: '',
-              Name: sensorName,
-              Type: 'Signal',
-              Original_Name: sensorName,
-              Status: `Search Error: HTTP ${response.status}`
-            });
-          }
-        } catch (error: any) {
-          // Individual sensor search failed
-          searchResults.push({
-            ID: '',
-            Name: sensorName,
-            Type: 'Signal',
-            Original_Name: sensorName,
-            Status: `Search Error: ${error.message}`
-          });
-        }
+      const response = await fetch(`${this.proxyUrl}/api/seeq/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seeq_url: this.seeqServerUrl,
+          sensor_names: sensorNames,
+          username: this.credentials?.accessKey,
+          password: this.credentials?.password,
+          auth_provider: this.credentials?.authProvider || 'Seeq'
+        })
+      });
+
+      this.logDiagnostic('PROXY_SEARCH_RESPONSE', `Proxy search response received`, {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.logDiagnostic('PROXY_SEARCH_SUCCESS', 'Proxy search successful', {
+          sensorCount: data.sensor_count,
+          searchResults: data.search_results
+        });
+
+        return {
+          success: true,
+          message: data.message || `Found ${data.sensor_count} sensors`,
+          search_results: data.search_results || [],
+          sensor_count: data.sensor_count || 0
+        };
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        this.logDiagnostic('PROXY_SEARCH_FAILED', 'Proxy search failed', {
+          status: response.status,
+          errorData
+        });
+
+        return {
+          success: false,
+          message: errorData.message || `Search failed with status ${response.status}`,
+          error: errorData.error || `HTTP ${response.status}`,
+          search_results: [],
+          sensor_count: 0
+        };
       }
-
-      const validSensors = searchResults.filter(sensor => sensor.ID);
-      
-      return {
-        success: true,
-        message: `Found ${validSensors.length} sensors`,
-        search_results: searchResults,
-        sensor_count: validSensors.length
-      };
-
     } catch (error: any) {
+      this.logDiagnostic('PROXY_SEARCH_ERROR', 'Proxy search error', {
+        error: error.message,
+        errorName: error.name
+      });
+
       return {
         success: false,
         message: `Sensor search failed: ${error.message}`,
@@ -398,18 +477,73 @@ export class SeeqAPIClient {
   }
 
   /**
-   * Search for sensors and pull their data
+   * Search for sensors and pull their data through proxy
    */
   async searchAndPullSensors(sensorNames: string[], startTime: string, endTime: string, grid: string = '15min'): Promise<SeeqDataResult> {
     try {
-      // First search for sensors
-      const searchResult = await this.searchSensors(sensorNames);
-      
-      if (!searchResult.success) {
+      this.logDiagnostic('PROXY_SEARCH_PULL_START', `Searching and pulling sensor data through proxy`, {
+        sensorNames,
+        startTime,
+        endTime,
+        grid,
+        seeqServerUrl: this.seeqServerUrl
+      });
+
+      const response = await fetch(`${this.proxyUrl}/api/seeq/data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seeq_url: this.seeqServerUrl,
+          sensor_names: sensorNames,
+          start_time: startTime,
+          end_time: endTime,
+          grid: grid,
+          username: this.credentials?.accessKey,
+          password: this.credentials?.password,
+          auth_provider: this.credentials?.authProvider || 'Seeq'
+        })
+      });
+
+      this.logDiagnostic('PROXY_SEARCH_PULL_RESPONSE', `Proxy search and pull response received`, {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.logDiagnostic('PROXY_SEARCH_PULL_SUCCESS', 'Proxy search and pull successful', {
+          sensorCount: data.sensor_count,
+          dataLength: data.data?.length || 0,
+          dataColumns: data.data_columns
+        });
+
+        return {
+          success: true,
+          message: data.message || `Successfully retrieved data for ${data.sensor_count} sensors`,
+          search_results: data.search_results || [],
+          data: data.data || [],
+          data_columns: data.data_columns || [],
+          data_index: data.data_index || [],
+          sensor_count: data.sensor_count || 0,
+          time_range: {
+            start: startTime,
+            end: endTime,
+            grid: grid
+          }
+        };
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        this.logDiagnostic('PROXY_SEARCH_PULL_FAILED', 'Proxy search and pull failed', {
+          status: response.status,
+          errorData
+        });
+
         return {
           success: false,
-          message: searchResult.message,
-          error: searchResult.error,
+          message: errorData.message || `Search and pull failed with status ${response.status}`,
+          error: errorData.error || `HTTP ${response.status}`,
           search_results: [],
           data: [],
           data_columns: [],
@@ -418,99 +552,12 @@ export class SeeqAPIClient {
           time_range: { start: startTime, end: endTime, grid }
         };
       }
-
-      const validSensors = searchResult.search_results.filter(sensor => sensor.ID);
-      
-      if (validSensors.length === 0) {
-        return {
-          success: false,
-          message: "No valid sensors found to pull data from",
-          error: "All sensors failed search",
-          search_results: searchResult.search_results,
-          data: [],
-          data_columns: [],
-          data_index: [],
-          sensor_count: 0,
-          time_range: { start: startTime, end: endTime, grid }
-        };
-      }
-
-      // Pull data for valid sensors using Seeq's signals API
-      try {
-        const allData: any[] = [];
-        const dataColumns: string[] = [];
-        
-        // Get data for each sensor individually
-        for (const sensor of validSensors) {
-          try {
-            const response = await fetch(`${this.baseUrl}/api/signals/${sensor.ID}/samples?start=${encodeURIComponent(startTime)}&end=${encodeURIComponent(endTime)}`, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              credentials: 'include' // Include session cookies
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              if (data && data.length > 0) {
-                // Add sensor name as column if not already present
-                const sensorColumnName = sensor.Name || `Sensor_${sensor.ID}`;
-                if (!dataColumns.includes(sensorColumnName)) {
-                  dataColumns.push(sensorColumnName);
-                }
-                
-                // Add data with sensor name
-                data.forEach((point: any) => {
-                  const existingPoint = allData.find(p => p.Timestamp === point.Timestamp);
-                  if (existingPoint) {
-                    existingPoint[sensorColumnName] = point.Value;
-                  } else {
-                    allData.push({
-                      Timestamp: point.Timestamp,
-                      [sensorColumnName]: point.Value
-                    });
-                  }
-                });
-              }
-            }
-          } catch (error: any) {
-            console.warn(`Failed to get data for sensor ${sensor.Name}:`, error);
-          }
-        }
-
-        // Sort data by timestamp
-        allData.sort((a, b) => new Date(a.Timestamp).getTime() - new Date(b.Timestamp).getTime());
-
-        return {
-          success: true,
-          message: `Successfully retrieved data for ${validSensors.length} sensors`,
-          search_results: searchResult.search_results,
-          data: allData,
-          data_columns: dataColumns,
-          data_index: allData.map((_, i) => i.toString()),
-          sensor_count: validSensors.length,
-          time_range: {
-            start: startTime,
-            end: endTime,
-            grid: grid
-          }
-        };
-      } catch (error: any) {
-        return {
-          success: false,
-          message: `Failed to pull data: ${error.message}`,
-          error: "Data pull failed",
-          search_results: searchResult.search_results,
-          data: [],
-          data_columns: [],
-          data_index: [],
-          sensor_count: validSensors.length,
-          time_range: { start: startTime, end: endTime, grid }
-        };
-      }
-
     } catch (error: any) {
+      this.logDiagnostic('PROXY_SEARCH_PULL_ERROR', 'Proxy search and pull error', {
+        error: error.message,
+        errorName: error.name
+      });
+
       return {
         success: false,
         message: `Search and pull operation failed: ${error.message}`,
@@ -538,9 +585,35 @@ export class SeeqAPIClient {
   /**
    * Clear authentication
    */
-  logout(): void {
-    this.authToken = null;
-    this.credentials = null;
+  async logout(): Promise<void> {
+    try {
+      if (this.authToken) {
+        this.logDiagnostic('PROXY_LOGOUT_START', 'Logging out through proxy');
+        
+        const response = await fetch(`${this.proxyUrl}/api/seeq/auth`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            seeq_url: this.seeqServerUrl,
+            username: this.credentials?.accessKey
+          })
+        });
+
+        this.logDiagnostic('PROXY_LOGOUT_RESPONSE', `Proxy logout response received`, {
+          status: response.status,
+          statusText: response.statusText
+        });
+      }
+    } catch (error: any) {
+      this.logDiagnostic('PROXY_LOGOUT_ERROR', 'Proxy logout error', {
+        error: error.message
+      });
+    } finally {
+      this.authToken = null;
+      this.credentials = null;
+    }
   }
 
   /**

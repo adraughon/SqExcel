@@ -16,8 +16,7 @@
     <!-- For more information on Fluent UI, visit https://developer.microsoft.com/fluentui#/. -->
     <link rel="stylesheet" href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"/>
 
-    <!-- Template styles -->
-    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+    <!-- CSS will be injected by webpack -->
 </head>
 
 <body class="ms-font-m ms-welcome ms-Fabric">
@@ -60,6 +59,39 @@
             <div id="auth-status" class="auth-status"></div>
         </div>
 
+        <!-- Diagnostics Section -->
+        <div id="diagnostics" class="diagnostics-section">
+            <div class="diagnostics-panel">
+                <p>Run a connection test to see detailed diagnostics and troubleshoot CORS or AppDomain issues.</p>
+            </div>
+        </div>
+
+        <!-- Search and Data Sections -->
+        <div class="search-section" style="display: none;">
+            <h3 class="ms-font-l">Sensor Search</h3>
+            <div class="form-group">
+                <label for="sensor-names">Sensor Names (comma-separated):</label>
+                <input type="text" id="sensor-names" placeholder="Sensor1, Sensor2, Sensor3" class="ms-TextField-field">
+            </div>
+            <div class="form-group">
+                <label for="start-time">Start Time:</label>
+                <input type="datetime-local" id="start-time" class="ms-TextField-field">
+            </div>
+            <div class="form-group">
+                <label for="end-time">End Time:</label>
+                <input type="datetime-local" id="end-time" class="ms-TextField-field">
+            </div>
+            <div class="form-group">
+                <label for="grid-interval">Grid Interval:</label>
+                <input type="text" id="grid-interval" placeholder="15min" class="ms-TextField-field">
+            </div>
+            <div class="search-buttons">
+                <button id="search-sensors" class="ms-Button ms-Button--primary">Search Sensors</button>
+                <button id="pull-data" class="ms-Button ms-Button--primary">Pull Data</button>
+            </div>
+            <div id="search-results" class="results-section"></div>
+            <div id="data-results" class="results-section"></div>
+        </div>
 
         <p><label id="item-subject"></label></p>
     </main>

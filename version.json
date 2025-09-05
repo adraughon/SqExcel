@@ -1,0 +1,12 @@
+{
+  "version": "1.0.22",
+  "description": "Integrated SqExcelWeb FastAPI proxy to resolve CORS issues with Seeq API calls",
+  "buildDate": "2025-09-05",
+  "changes": [
+    "Added Vercel proxy domain to manifest.xml AppDomains",
+    "Replaced direct Seeq API client with proxy client",
+    "All Seeq API calls now route through https://sq-excel-web.vercel.app",
+    "Resolved CORS issues by using server-side SPy module",
+    "Enhanced authentication flow through proxy server"
+  ]
+}

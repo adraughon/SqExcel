@@ -5,15 +5,27 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const CustomFunctionsMetadataPlugin = require("custom-functions-metadata-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
+const fs = require("fs");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const urlDev = "https://localhost:3001/";
-const urlProd = "https://your-production-domain.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const urlProd = "https://adraughon.github.io/SqExcel/"; // Updated to your GitHub Pages URL
 
 /* global require, module, process, __dirname */
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
   return { ca: httpsOptions.ca, key: httpsOptions.key, cert: httpsOptions.cert };
+}
+
+function getVersionInfo() {
+  try {
+    const versionData = JSON.parse(fs.readFileSync('./version.json', 'utf8'));
+    return versionData;
+  } catch (error) {
+    console.warn('Could not read version.json, using default version');
+    return { version: '1.0.0.0', description: 'Version info unavailable' };
+  }
 }
 
 module.exports = async (env, options) => {
@@ -47,6 +59,13 @@ module.exports = async (env, options) => {
           use: "html-loader",
         },
         {
+          test: /\.css$/,
+          use: [
+            MiniCssExtractPlugin.loader,
+            "css-loader"
+          ],
+        },
+        {
           test: /\.(png|jpg|jpeg|gif|ico)$/,
           type: "asset/resource",
           generator: {
@@ -56,6 +75,9 @@ module.exports = async (env, options) => {
       ],
     },
     plugins: [
+      new MiniCssExtractPlugin({
+        filename: "styles.css" // Fixed filename instead of hash
+      }),
       new CustomFunctionsMetadataPlugin({
         output: "functions.json",
         input: "./src/functions/functions.ts",
@@ -64,6 +86,12 @@ module.exports = async (env, options) => {
         filename: "taskpane.html",
         template: "./src/taskpane/taskpane.html",
         chunks: ["polyfill", "taskpane", "functions", "commands"],
+        inject: true,
+      }),
+      new HtmlWebpackPlugin({
+        filename: "index.html",
+        template: "./src/index.html",
+        chunks: [],
       }),
       new CopyWebpackPlugin({
         patterns: [
@@ -72,14 +100,28 @@ module.exports = async (env, options) => {
             to: "assets/[name][ext][query]",
           },
           {
+            from: "version.json",
+            to: "version.json",
+          },
+          {
             from: "manifest*.xml",
             to: "[name]" + "[ext]",
             transform(content) {
-              if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(urlDev, urlProd);
+              let transformedContent = content.toString();
+              
+              if (!dev) {
+                // Replace URLs for production
+                transformedContent = transformedContent.replace(new RegExp(urlDev.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), urlProd);
+                
+                // Update version from version.json
+                const versionInfo = getVersionInfo();
+                transformedContent = transformedContent.replace(
+                  /<Version>[\d.]+<\/Version>/g,
+                  `<Version>${versionInfo.version}</Version>`
+                );
               }
+              
+              return transformedContent;
             },
           },
         ],
@@ -88,6 +130,9 @@ module.exports = async (env, options) => {
     devServer: {
       headers: {
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true",
       },
       server: {
         type: "https",

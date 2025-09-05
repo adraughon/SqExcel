@@ -5,19 +5,57 @@
 
 /* global console, document, Excel, Office */
 
+// Import CSS for styling
+import './taskpane.css';
+
 // Import the new Seeq API client
 import { SeeqAPIClient } from './seeq-api-client';
 
-// Version number to prove we're using the new code
-const ADDIN_VERSION = "1.0.0.2 - Enhanced Error Handling & CORS Debugging";
+// Version will be dynamically loaded from version.json
+let ADDIN_VERSION = "Loading...";
 
 // Global API client instance
 let seeqClient: SeeqAPIClient | null = null;
 
+// Load version information from version.json
+async function loadVersionInfo(): Promise<void> {
+  try {
+    console.log('Attempting to load version info...');
+    
+    // Try relative path first, then fallback to full URL
+    let response = await fetch('./version.json');
+    console.log('Relative path response status:', response.status);
+    
+    if (!response.ok) {
+      console.log('Relative path failed, trying full URL...');
+      // Fallback to full URL if relative path fails
+      response = await fetch('https://adraughon.github.io/SqExcel/version.json');
+      console.log('Full URL response status:', response.status);
+    }
+    
+    if (response.ok) {
+      const versionData = await response.json();
+      console.log('Version data loaded:', versionData);
+      ADDIN_VERSION = `${versionData.version} - ${versionData.description}`;
+    } else {
+      console.error('Failed to load version.json, status:', response.status);
+      ADDIN_VERSION = "Version info unavailable";
+    }
+  } catch (error) {
+    console.error('Failed to load version info:', error);
+    ADDIN_VERSION = "Version info unavailable";
+  }
+}
+
 // The initialize function must be run each time a new page is loaded
-Office.onReady(() => {
-  document.getElementById("sideload-msg").style.display = "none";
-  document.getElementById("app-body").style.display = "flex";
+Office.onReady(async () => {
+  const sideloadMsg = document.getElementById("sideload-msg");
+  const appBody = document.getElementById("app-body");
+  if (sideloadMsg) sideloadMsg.style.display = "none";
+  if (appBody) appBody.style.display = "flex";
+  
+  // Load version information first
+  await loadVersionInfo();
   
   // Initialize Seeq authentication
   initializeSeeqAuth();
@@ -105,13 +143,20 @@ async function testSeeqConnection(): Promise<void> {
         showAuthStatus(`${result.message} - Warning: ${authEndpointResult.message}`, "warning");
       }
       
+      // Display comprehensive diagnostics
+      displayDiagnostics(result, authEndpointResult);
+      
       // Update Excel function cache
       updateExcelCache("auth", result);
     } else {
       showAuthStatus(result.message, "error");
+      
+      // Display error diagnostics
+      displayErrorDiagnostics(result);
     }
   } catch (error) {
     showAuthStatus(`Connection test failed: ${error}`, "error");
+    displayErrorDiagnostics({ success: false, message: error.toString(), error: error.toString() });
   }
 }
 
@@ -254,7 +299,7 @@ function logoutFromSeeq(): void {
   (document.getElementById("ignore-ssl") as HTMLInputElement).checked = false;
 }
 
-function showAuthStatus(message: string, type: "success" | "error" | "info" | "loading"): void {
+function showAuthStatus(message: string, type: "success" | "error" | "info" | "loading" | "warning"): void {
   const statusElement = document.getElementById("auth-status");
   if (statusElement) {
     statusElement.textContent = message;
@@ -444,3 +489,302 @@ function displayDataResults(result: any): void {
     resultsDiv.innerHTML = html;
   }
 }
+
+// Display comprehensive diagnostics
+function displayDiagnostics(connectionResult: any, authResult: any): void {
+  const diagnosticsDiv = document.getElementById("diagnostics");
+  if (!diagnosticsDiv) return;
+
+  const diagnostics = seeqClient?.getDiagnostics();
+  if (!diagnostics) return;
+
+  let html = `
+    <div class="diagnostics-panel">
+      <h3>🔍 Connection Diagnostics</h3>
+      <div class="diagnostic-section">
+        <h4>Environment Information</h4>
+        <div class="diagnostic-grid">
+          <div class="diagnostic-item">
+            <strong>App Domain:</strong> ${diagnostics.environment.appDomain}
+          </div>
+          <div class="diagnostic-item">
+            <strong>Origin:</strong> ${diagnostics.environment.origin}
+          </div>
+          <div class="diagnostic-item">
+            <strong>Network Type:</strong> ${diagnostics.environment.networkInfo.connectionType}
+          </div>
+          <div class="diagnostic-item">
+            <strong>Online Status:</strong> ${diagnostics.environment.networkInfo.online ? '✅ Online' : '❌ Offline'}
+          </div>
+        </div>
+      </div>
+  `;
+
+  // Connection test results
+  if (connectionResult.diagnostics) {
+    html += `
+      <div class="diagnostic-section">
+        <h4>Connection Test Results</h4>
+        <div class="diagnostic-grid">
+          <div class="diagnostic-item">
+            <strong>Response Time:</strong> ${connectionResult.diagnostics.request_timing}ms
+          </div>
+          <div class="diagnostic-item">
+            <strong>Status Code:</strong> ${connectionResult.status_code}
+          </div>
+          <div class="diagnostic-item">
+            <strong>CORS Status:</strong> ${connectionResult.diagnostics.cors_status}
+          </div>
+        </div>
+    `;
+
+    // Show CORS headers if available
+    if (connectionResult.diagnostics.response_headers) {
+      const corsHeaders = [
+        'access-control-allow-origin',
+        'access-control-allow-methods',
+        'access-control-allow-headers',
+        'access-control-allow-credentials'
+      ];
+      
+      html += `
+        <div class="cors-headers">
+          <h5>CORS Headers:</h5>
+          <ul>
+      `;
+      
+      corsHeaders.forEach(header => {
+        const value = connectionResult.diagnostics.response_headers[header];
+        html += `<li><strong>${header}:</strong> ${value || 'Not set'}</li>`;
+      });
+      
+      html += `</ul></div>`;
+    }
+    
+    html += `</div>`;
+  }
+
+  // Auth endpoint test results
+  if (authResult.diagnostics) {
+    html += `
+      <div class="diagnostic-section">
+        <h4>Authentication Endpoint Test</h4>
+        <div class="diagnostic-grid">
+          <div class="diagnostic-item">
+            <strong>Response Time:</strong> ${authResult.diagnostics.request_timing}ms
+          </div>
+          <div class="diagnostic-item">
+            <strong>Status Code:</strong> ${authResult.status_code}
+          </div>
+        </div>
+    `;
+
+    // Show CORS analysis if available
+    if (authResult.diagnostics.cors_analysis) {
+      const corsAnalysis = authResult.diagnostics.cors_analysis;
+      html += `
+        <div class="cors-analysis">
+          <h5>CORS Configuration Analysis:</h5>
+          <div class="cors-status">
+            <div class="cors-item ${corsAnalysis.allowsOrigin ? 'success' : 'error'}">
+              <strong>Origin Allowed:</strong> ${corsAnalysis.allowsOrigin ? '✅ Yes' : '❌ No'}
+            </div>
+            <div class="cors-item ${corsAnalysis.allowsMethods ? 'success' : 'error'}">
+              <strong>Methods Allowed:</strong> ${corsAnalysis.allowsMethods ? '✅ Yes' : '❌ No'}
+            </div>
+            <div class="cors-item ${corsAnalysis.allowsHeaders ? 'success' : 'error'}">
+              <strong>Headers Allowed:</strong> ${corsAnalysis.allowsHeaders ? '✅ Yes' : '❌ No'}
+            </div>
+          </div>
+      `;
+
+      if (corsAnalysis.issues.length > 0) {
+        html += `
+          <div class="cors-issues">
+            <h6>Issues Found:</h6>
+            <ul>
+              ${corsAnalysis.issues.map(issue => `<li>❌ ${issue}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      if (corsAnalysis.recommendations.length > 0) {
+        html += `
+          <div class="cors-recommendations">
+            <h6>Recommendations:</h6>
+            <ul>
+              ${corsAnalysis.recommendations.map(rec => `<li>💡 ${rec}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+    }
+    
+    html += `</div>`;
+  }
+
+  // Recent diagnostic logs
+  if (diagnostics.recentLogs && diagnostics.recentLogs.length > 0) {
+    html += `
+      <div class="diagnostic-section">
+        <h4>Recent Diagnostic Logs</h4>
+        <div class="log-entries">
+    `;
+    
+    diagnostics.recentLogs.slice(-10).forEach((log: any) => {
+      const timestamp = new Date(log.timestamp).toLocaleTimeString();
+      html += `
+        <div class="log-entry">
+          <span class="log-time">${timestamp}</span>
+          <span class="log-category">[${log.category}]</span>
+          <span class="log-message">${log.message}</span>
+        </div>
+      `;
+    });
+    
+    html += `</div></div>`;
+  }
+
+  html += `
+      <div class="diagnostic-actions">
+        <button onclick="clearDiagnostics()" class="btn-secondary">Clear Logs</button>
+        <button onclick="exportDiagnostics()" class="btn-secondary">Export Diagnostics</button>
+      </div>
+    </div>
+  `;
+
+  diagnosticsDiv.innerHTML = html;
+}
+
+// Display error diagnostics
+function displayErrorDiagnostics(result: any): void {
+  const diagnosticsDiv = document.getElementById("diagnostics");
+  if (!diagnosticsDiv) return;
+
+  const diagnostics = seeqClient?.getDiagnostics();
+  if (!diagnostics) return;
+
+  let html = `
+    <div class="diagnostics-panel error">
+      <h3>❌ Error Diagnostics</h3>
+      <div class="error-summary">
+        <h4>Error Summary</h4>
+        <div class="error-details">
+          <div class="error-item">
+            <strong>Error Message:</strong> ${result.message}
+          </div>
+          <div class="error-item">
+            <strong>Error Type:</strong> ${result.error || 'Unknown'}
+          </div>
+        </div>
+      </div>
+  `;
+
+  // Show error analysis if available
+  if (result.diagnostics && result.diagnostics.error_analysis) {
+    const errorAnalysis = result.diagnostics.error_analysis;
+    html += `
+      <div class="diagnostic-section">
+        <h4>Error Analysis</h4>
+        <div class="error-analysis">
+          <div class="analysis-item">
+            <strong>Error Type:</strong> ${errorAnalysis.errorType}
+          </div>
+          <div class="analysis-item">
+            <strong>Likely Cause:</strong> ${errorAnalysis.likelyCause}
+          </div>
+          <div class="analysis-flags">
+            <div class="flag ${errorAnalysis.isCorsRelated ? 'active' : ''}">CORS Related</div>
+            <div class="flag ${errorAnalysis.isNetworkRelated ? 'active' : ''}">Network Related</div>
+            <div class="flag ${errorAnalysis.isSslRelated ? 'active' : ''}">SSL Related</div>
+            <div class="flag ${errorAnalysis.isAppDomainRelated ? 'active' : ''}">AppDomain Related</div>
+          </div>
+        </div>
+    `;
+
+    if (errorAnalysis.recommendations.length > 0) {
+      html += `
+        <div class="recommendations">
+          <h5>Recommendations:</h5>
+          <ul>
+            ${errorAnalysis.recommendations.map(rec => `<li>💡 ${rec}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+    
+    html += `</div>`;
+  }
+
+  // Environment information
+  html += `
+    <div class="diagnostic-section">
+      <h4>Environment Information</h4>
+      <div class="diagnostic-grid">
+        <div class="diagnostic-item">
+          <strong>App Domain:</strong> ${diagnostics.environment.appDomain}
+        </div>
+        <div class="diagnostic-item">
+          <strong>Origin:</strong> ${diagnostics.environment.origin}
+        </div>
+        <div class="diagnostic-item">
+          <strong>Network Type:</strong> ${diagnostics.environment.networkInfo.connectionType}
+        </div>
+        <div class="diagnostic-item">
+          <strong>Online Status:</strong> ${diagnostics.environment.networkInfo.online ? '✅ Online' : '❌ Offline'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  html += `
+    <div class="diagnostic-actions">
+      <button onclick="clearDiagnostics()" class="btn-secondary">Clear Logs</button>
+      <button onclick="exportDiagnostics()" class="btn-secondary">Export Diagnostics</button>
+    </div>
+  </div>
+  `;
+
+  diagnosticsDiv.innerHTML = html;
+}
+
+// Clear diagnostics
+function clearDiagnostics(): void {
+  if (seeqClient) {
+    seeqClient.clearDiagnostics();
+  }
+  const diagnosticsDiv = document.getElementById("diagnostics");
+  if (diagnosticsDiv) {
+    diagnosticsDiv.innerHTML = '<div class="diagnostics-panel"><p>Diagnostics cleared. Run a connection test to generate new diagnostics.</p></div>';
+  }
+}
+
+// Export diagnostics
+function exportDiagnostics(): void {
+  if (!seeqClient) return;
+  
+  const diagnostics = seeqClient.getDiagnostics();
+  const exportData = {
+    timestamp: new Date().toISOString(),
+    diagnostics,
+    userAgent: navigator.userAgent,
+    url: window.location.href
+  };
+  
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sqexcel-diagnostics-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Make functions globally available
+(window as any).clearDiagnostics = clearDiagnostics;
+(window as any).exportDiagnostics = exportDiagnostics;
