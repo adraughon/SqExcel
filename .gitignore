@@ -6,12 +6,14 @@ yarn-error.log*
 
 # Source files (we only want to deploy the built dist folder)
 src/
-scripts/
 package.json
 package-lock.json
 webpack.config.js
 tsconfig.json
 babel.config.json
+
+# Keep scripts folder for build process
+!scripts/
 
 # Development files
 .DS_Store
