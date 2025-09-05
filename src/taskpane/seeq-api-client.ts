@@ -73,7 +73,7 @@ export class SeeqAPIClient {
 
   constructor(seeqServerUrl: string) {
     this.seeqServerUrl = seeqServerUrl.replace(/\/$/, ''); // Remove trailing slash
-    this.proxyUrl = 'https://sq-excel-web.vercel.app';
+    this.proxyUrl = 'https://sqexcel.up.railway.app';
     this.logDiagnostic('CLIENT_INIT', `SeeqAPIClient initialized with proxy: ${this.proxyUrl}, Seeq server: ${this.seeqServerUrl}`);
   }
 
