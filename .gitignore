@@ -4,16 +4,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Source files (we only want to deploy the built dist folder)
-src/
-package.json
-package-lock.json
-webpack.config.js
-tsconfig.json
-babel.config.json
+# Source files - we need these for building, but we'll deploy from dist/
+# src/ - commented out because we need src files for GitHub Actions build
 
 # Keep scripts folder for build process
 !scripts/
+
+# Keep source files for build process
+!src/
 
 # Development files
 .DS_Store
