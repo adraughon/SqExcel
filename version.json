@@ -1,5 +1,5 @@
 {
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "Fixed Excel integration: Added missing endpoints and improved credential storage",
   "buildDate": "2025-09-05",
   "changes": [

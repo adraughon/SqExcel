@@ -88,7 +88,7 @@ export function logMessage(message: string): string {
 }
 
 // Backend server configuration
-const BACKEND_URL = 'https://localhost:3000';
+const BACKEND_URL = 'https://sqexcel.up.railway.app';
 
 /**
  * Helper function to get stored Seeq credentials from the backend
