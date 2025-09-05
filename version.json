@@ -1,12 +1,13 @@
 {
-  "version": "1.0.27",
-  "description": "Migrated SqExcelWeb proxy from Vercel to Railway for improved stability",
+  "version": "1.0.29",
+  "description": "Fixed Excel integration: Added missing endpoints and improved credential storage",
   "buildDate": "2025-09-05",
   "changes": [
-    "Migrated proxy server from Vercel to Railway (https://sqexcel.up.railway.app)",
-    "Updated SeeqAPIClient to use Railway proxy URL",
-    "Improved proxy server stability with Flask instead of FastAPI",
-    "Added comprehensive error handling and diagnostics",
-    "Ready for full Seeq API integration testing"
+    "Fixed Excel function integration - added missing /api/seeq/credentials, /api/seeq/search-sensors, /api/seeq/sensor-data endpoints",
+    "Replaced global credential storage with Flask session-based storage for better security",
+    "Added automatic credential storage from taskpane authentication for Excel functions",
+    "Added structured logging for production monitoring",
+    "Fixed authentication flow between taskpane and Excel functions",
+    "Excel functions now work properly with SEEQ_SEARCH_SENSORS and SEEQ_SENSOR_DATA"
   ]
 }
