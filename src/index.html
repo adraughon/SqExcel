@@ -1,13 +1,300 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SqExcel Office Add-in</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SqExcel - Excel Add-in for Seeq Data Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .description {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .description h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .description p {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .installation {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .installation h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .platform {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .platform h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        
+        .steps li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+        }
+        
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #667eea;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .download-section {
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .demo-btn {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+        
+        .demo-btn:hover {
+            box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>SqExcel Office Add-in</h1>
-    <p>This is the SqExcel Office Add-in deployment.</p>
-    <p><a href="manifest.xml">Download Manifest</a></p>
-    <p><a href="taskpane.html">Open Task Pane</a></p>
+    <div class="container">
+        <div class="header">
+            <img src="../assets/logo-filled.png" alt="SqExcel Logo" class="logo">
+            <h1>SqExcel</h1>
+            <p class="subtitle">Excel Add-in for Seeq Data Integration and Analysis</p>
+        </div>
+        
+        <div class="description">
+            <h2>What is SqExcel?</h2>
+            <p>SqExcel is a powerful Microsoft Excel add-in that seamlessly integrates with Seeq, enabling you to access, analyze, and visualize your industrial data directly within Excel. Whether you're working with time-series data, performing statistical analysis, or creating reports, SqExcel brings the power of Seeq's advanced analytics to your familiar Excel environment.</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <h3>🔗 Direct Seeq Integration</h3>
+                    <p>Connect directly to your Seeq server and access your data sources, workbooks, and analyses without leaving Excel.</p>
+                </div>
+                <div class="feature">
+                    <h3>📊 Advanced Analytics</h3>
+                    <p>Leverage Seeq's powerful time-series analysis capabilities including statistical functions, signal processing, and trend analysis.</p>
+                </div>
+                <div class="feature">
+                    <h3>📈 Custom Functions</h3>
+                    <p>Use custom Excel functions to pull Seeq data, perform calculations, and create dynamic reports that update automatically.</p>
+                </div>
+                <div class="feature">
+                    <h3>🎯 Easy to Use</h3>
+                    <p>Intuitive task pane interface that makes it easy to browse Seeq content and insert data into your Excel worksheets.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="installation">
+            <h2>How to Install SqExcel</h2>
+            <p>Follow these steps to sideload the SqExcel add-in in your version of Excel:</p>
+            
+            <div class="platform">
+                <h3>🪟 Windows Excel (Excel 2016 or later)</h3>
+                <ol class="steps">
+                    <li>Open Excel and create a new workbook</li>
+                    <li>Go to <strong>Insert</strong> tab → <strong>My Add-ins</strong> → <strong>Upload My Add-in</strong></li>
+                    <li>Click <strong>Browse</strong> and select the downloaded manifest file</li>
+                    <li>Click <strong>Upload</strong> to install the add-in</li>
+                    <li>The SqExcel add-in will appear in your <strong>Home</strong> tab</li>
+                </ol>
+            </div>
+            
+            <div class="platform">
+                <h3>🍎 Mac Excel (Excel 2016 or later)</h3>
+                <ol class="steps">
+                    <li>Open Excel and create a new workbook</li>
+                    <li>Go to <strong>Insert</strong> tab → <strong>Add-ins</strong> → <strong>My Add-ins</strong></li>
+                    <li>Click the <strong>Upload My Add-in</strong> button</li>
+                    <li>Select the downloaded manifest file and click <strong>Upload</strong></li>
+                    <li>The SqExcel add-in will be available in your <strong>Home</strong> tab</li>
+                </ol>
+            </div>
+            
+            <div class="platform">
+                <h3>🌐 Excel Online (Office 365)</h3>
+                <ol class="steps">
+                    <li>Open Excel Online in your browser</li>
+                    <li>Go to <strong>Insert</strong> tab → <strong>Office Add-ins</strong></li>
+                    <li>Click <strong>Upload My Add-in</strong></li>
+                    <li>Upload the manifest file</li>
+                    <li>Start using SqExcel in your online workbook</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="download-section">
+            <h2>Get Started</h2>
+            <p>Download the manifest file and start using SqExcel today!</p>
+            <a href="manifest.xml" class="download-btn" download>📥 Download Manifest</a>
+            <a href="taskpane.html" class="download-btn demo-btn">🚀 Try Demo</a>
+        </div>
+        
+        <div class="footer">
+            <p>Need help? Visit our <a href="https://github.com/adraughon/SqExcel" target="_blank">GitHub repository</a> for support and documentation.</p>
+            <p>Version 1.0.18 | Made with ❤️ for the Seeq community</p>
+        </div>
+    </div>
 </body>
 </html>

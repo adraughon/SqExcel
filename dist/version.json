@@ -1,7 +1,7 @@
 {
-  "version": "1.0.34",
+  "version": "1.0.36",
   "description": "Enhanced user experience: Improved UI, removed console logging, and added comprehensive user guide",
-  "buildDate": "2025-09-05",
+  "buildDate": "2025-09-08",
   "changes": [
     "Enhanced user guide with step-by-step access key setup instructions",
     "Added detailed function examples and usage instructions",
