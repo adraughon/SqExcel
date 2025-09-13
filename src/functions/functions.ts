@@ -204,16 +204,9 @@ export function PULL(
     
     // Try to parse dates consistently
     try {
-      // If the input looks like a local date format, parse it as local time
-      if (startDatetime.includes('/') && !startDatetime.includes('T')) {
-        // Format like "8/1/2025 0:00" - treat as local time
-        startDate = new Date(startDatetime);
-        endDate = new Date(endDatetime);
-      } else {
-        // ISO format or other - use as is
-        startDate = new Date(startDatetime);
-        endDate = new Date(endDatetime);
-      }
+      // Parse dates as local time
+      startDate = new Date(startDatetime);
+      endDate = new Date(endDatetime);
     } catch (e) {
       return [["Error: Invalid datetime format. Use ISO format: YYYY-MM-DDTHH:MM:SS"]];
     }
@@ -303,7 +296,7 @@ export function PULL(
       
       // Add debug info as the first cell of the first data row
       if (dataRows.length > 0) {
-        dataRows[0][0] = `Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}`;
+        dataRows[0][0] = `Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}, TimeRange=${timeRangeSeconds}s`;
       }
       
       return [headers].concat(dataRows);
