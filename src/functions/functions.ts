@@ -198,9 +198,25 @@ export function PULL(
       return [["Error: No sensor names provided"]];
     }
     
-    // Validate datetime format
-    const startDate = new Date(startDatetime);
-    const endDate = new Date(endDatetime);
+    // Validate datetime format and ensure consistent timezone handling
+    let startDate: Date;
+    let endDate: Date;
+    
+    // Try to parse dates consistently
+    try {
+      // If the input looks like a local date format, parse it as local time
+      if (startDatetime.includes('/') && !startDatetime.includes('T')) {
+        // Format like "8/1/2025 0:00" - treat as local time
+        startDate = new Date(startDatetime);
+        endDate = new Date(endDatetime);
+      } else {
+        // ISO format or other - use as is
+        startDate = new Date(startDatetime);
+        endDate = new Date(endDatetime);
+      }
+    } catch (e) {
+      return [["Error: Invalid datetime format. Use ISO format: YYYY-MM-DDTHH:MM:SS"]];
+    }
     
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return [["Error: Invalid datetime format. Use ISO format: YYYY-MM-DDTHH:MM:SS"]];
@@ -232,15 +248,19 @@ export function PULL(
         return [["Error: Number of points must be a positive integer"]];
       }
       
-      // Calculate time range in seconds
-      const timeRangeMs = endDate.getTime() - startDate.getTime();
-      const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
+    // Calculate time range in seconds
+    const timeRangeMs = endDate.getTime() - startDate.getTime();
+    const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
       
       // Calculate seconds per point (must be integer)
       const secondsPerPoint = Math.floor(timeRangeSeconds / numPoints);
       
       if (secondsPerPoint < 1) {
-        return [["Error: Time range too short for requested number of points. Try fewer points or a longer time range."]];
+        return [
+          ["Error: Time range too short for requested number of points. Try fewer points or a longer time range."],
+          [`Debug: Time range: ${timeRangeSeconds}s (${(timeRangeSeconds/3600).toFixed(2)}h), Points: ${numPoints}`],
+          [`Debug: Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`]
+        ];
       }
       
       // Convert to grid format
@@ -281,7 +301,10 @@ export function PULL(
         return [excelSerialTimestamp].concat(values);
       });
       
-      return [headers].concat(dataRows);
+      // Add debug info as first row
+      const debugRow = [`Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}`];
+      
+      return [debugRow, headers].concat(dataRows);
     } else {
       // Check if backend server is not running
       if (result.error && result.error.includes('Failed to fetch') || result.error.includes('NetworkError')) {
