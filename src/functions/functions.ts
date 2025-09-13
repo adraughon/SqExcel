@@ -301,10 +301,12 @@ export function PULL(
         return [excelSerialTimestamp].concat(values);
       });
       
-      // Add debug info as first row
-      const debugRow = [`Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}`];
+      // Add debug info as the first cell of the first data row
+      if (dataRows.length > 0) {
+        dataRows[0][0] = `Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}`;
+      }
       
-      return [debugRow, headers].concat(dataRows);
+      return [headers].concat(dataRows);
     } else {
       // Check if backend server is not running
       if (result.error && result.error.includes('Failed to fetch') || result.error.includes('NetworkError')) {
