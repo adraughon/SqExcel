@@ -314,12 +314,16 @@ export function PULL(
       return [["Error: Not authenticated to Seeq. Please use the SqExcel taskpane to authenticate first."]];
     }
     
+    // Get user's timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
     // Call backend server with credentials
     const result = callBackendSync('/api/seeq/sensor-data', {
       sensorNames: sensorNamesList,
       startDatetime,
       endDatetime,
       grid,
+      userTimezone,
       url: authCredentials.url,
       accessKey: authCredentials.accessKey,
       password: authCredentials.password,
