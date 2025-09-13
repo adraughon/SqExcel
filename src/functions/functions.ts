@@ -243,6 +243,10 @@ export function PULL(
   if (!startDate || !endDate) {
     return [["Error: Invalid datetime format. Use formats like: 8/1/2025 0:00 or 2024-01-01T00:00:00"]];
   }
+  
+  // Debug: Show parsed dates (will be included in return value)
+  const debugParsedDates = `Debug: Parsed startDate: ${startDate.toISOString()}, endDate: ${endDate.toISOString()}`;
+  const debugInputStrings = `Debug: Input strings: "${startDatetime}", "${endDatetime}"`;
     
     if (startDate >= endDate) {
       return [["Error: Start datetime must be before end datetime"]];
@@ -328,6 +332,9 @@ export function PULL(
       if (dataRows.length > 0) {
         const timeRangeMinutes = Math.floor(timeRangeSeconds / 60);
         dataRows[0][0] = `Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}, TimeRange=${timeRangeMinutes}min`;
+        // Add parsed dates debug info as second row
+        dataRows.splice(1, 0, [debugParsedDates]);
+        dataRows.splice(2, 0, [debugInputStrings]);
       }
       
       return [headers].concat(dataRows);
