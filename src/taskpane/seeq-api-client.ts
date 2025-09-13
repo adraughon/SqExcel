@@ -523,15 +523,14 @@ export class SeeqAPIClient {
       if (mode === 'grid') {
         grid = String(modeValue);
       } else {
-        // mode === 'points' - calculate grid from number of points (using minutes)
+        // mode === 'points' - calculate grid from number of points
         const numPoints = typeof modeValue === 'number' ? modeValue : parseInt(String(modeValue));
         const startDate = new Date(startTime);
         const endDate = new Date(endTime);
         const timeRangeMs = endDate.getTime() - startDate.getTime();
         const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
-        const timeRangeMinutes = Math.floor(timeRangeSeconds / 60);
-        const minutesPerPoint = Math.floor(timeRangeMinutes / numPoints);
-        grid = `${minutesPerPoint}min`;
+        const secondsPerPoint = Math.floor(timeRangeSeconds / numPoints);
+        grid = `${secondsPerPoint}s`;
       }
 
       this.logDiagnostic('PROXY_SEARCH_PULL_START', `Searching and pulling sensor data through proxy`, {

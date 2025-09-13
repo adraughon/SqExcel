@@ -254,17 +254,9 @@ export function PULL(
     return [["Error: Invalid datetime format. Use formats like: 8/1/2025 0:00 or 2024-01-01T00:00:00"]];
   }
   
-  // Debug: Show parsed dates and calculations (will be included in return value)
+  // Calculate time range in seconds (needed for both modes)
   const timeRangeMs = endDate.getTime() - startDate.getTime();
   const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
-  const timeRangeMinutes = Math.floor(timeRangeSeconds / 60);
-  const timeRangeHours = Math.floor(timeRangeMinutes / 60);
-  const timeRangeDays = Math.floor(timeRangeHours / 24);
-  
-  const debugParsedDates = `Parsed: ${startDate.toISOString()} to ${endDate.toISOString()}`;
-  const debugInputStrings = `Input: "${startDatetime}" to "${endDatetime}"`;
-  const debugTimeRange = `TimeRange: ${timeRangeMs}ms, ${timeRangeSeconds}s, ${timeRangeMinutes}min, ${timeRangeHours}h, ${timeRangeDays}d`;
-  const debugModeInfo = `Mode: ${mode}, ModeValue: ${modeValue}`;
     
     if (startDate >= endDate) {
       return [["Error: Start datetime must be before end datetime"]];
@@ -275,7 +267,6 @@ export function PULL(
       return [["Error: Mode must be 'grid' or 'points'"]];
     }
     
-    // Time range already calculated above for debug info
     
     // Calculate grid based on mode
     let grid: string;
@@ -294,20 +285,17 @@ export function PULL(
         return [["Error: Number of points must be a positive integer"]];
       }
       
-      // Calculate minutes per point (must be integer)
-      const minutesPerPoint = Math.floor(timeRangeMinutes / numPoints);
+      // Calculate seconds per point (must be integer)
+      const secondsPerPoint = Math.floor(timeRangeSeconds / numPoints);
       
-      if (minutesPerPoint < 1) {
+      if (secondsPerPoint < 1) {
         return [
-          ["Error: Time range too short for requested number of points. Try fewer points or a longer time range."],
-          [`Debug: Time range: ${timeRangeMinutes}min (${(timeRangeMinutes/60).toFixed(2)}h), Points: ${numPoints}, MinutesPerPoint: ${minutesPerPoint}`],
-          [`Debug: Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`],
-          [`Debug: Input: "${startDatetime}" to "${endDatetime}"`]
+          ["Error: Time range too short for requested number of points. Try fewer points or a longer time range."]
         ];
       }
       
       // Convert to grid format
-      grid = `${minutesPerPoint}min`;
+      grid = `${secondsPerPoint}s`;
     }
 
         // Check if we have stored credentials
@@ -344,10 +332,6 @@ export function PULL(
         return [excelSerialTimestamp].concat(values);
       });
       
-      // Add comprehensive debug info as the first cell of the first data row
-      if (dataRows.length > 0) {
-        dataRows[0][0] = `DEBUG: Grid=${grid} | ${debugModeInfo} | Actual rows=${dataRows.length} | ${debugTimeRange} | ${debugParsedDates} | ${debugInputStrings}`;
-      }
       
       return [headers].concat(dataRows);
     } else {
