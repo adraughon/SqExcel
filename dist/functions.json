@@ -13,12 +13,12 @@
                     "type": "string"
                 },
                 {
-                    "description": "Start time for data pull (ISO format: \"2024-01-01T00:00:00\")",
+                    "description": "Start time for data pull (ISO format: \"2024-01-01T00:00:00\" or \"8/1/2025 0:00\")",
                     "name": "startDatetime",
                     "type": "string"
                 },
                 {
-                    "description": "End time for data pull (ISO format: \"2024-01-31T23:59:59\")",
+                    "description": "End time for data pull (ISO format: \"2024-01-31T23:59:59\" or \"8/3/2025 0:00\")",
                     "name": "endDatetime",
                     "type": "string"
                 },

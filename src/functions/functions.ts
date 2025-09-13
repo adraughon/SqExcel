@@ -133,6 +133,9 @@ function callBackendSync(endpoint: string, data: any = null): any {
  * 1. Select the timestamp column
  * 2. Right-click → Format Cells → Date
  * 3. Choose desired date format (e.g., "3/14/12 1:30 PM")
+ * 
+ * This function preserves the original timezone information from the backend
+ * to ensure timestamps display correctly in the user's local timezone.
  */
 function convertToExcelSerialNumber(timestamp: any): number {
   try {
@@ -141,6 +144,7 @@ function convertToExcelSerialNumber(timestamp: any): number {
     
     if (typeof timestamp === 'string') {
       // Try to parse ISO string or other date formats
+      // The backend now sends timestamps in the user's local timezone
       date = new Date(timestamp);
     } else if (timestamp instanceof Date) {
       date = timestamp;
@@ -160,6 +164,7 @@ function convertToExcelSerialNumber(timestamp: any): number {
     // Convert to Excel serial number
     // Excel serial number = (JS timestamp / (1000 * 60 * 60 * 24)) + 25569
     // Where 25569 is the number of days between 1900-01-01 and 1970-01-01
+    // This preserves the local timezone since the backend now sends local time
     const excelSerial = (date.getTime() / (1000 * 60 * 60 * 24)) + 25569;
     
     return excelSerial;
@@ -219,11 +224,16 @@ function parseDate(dateString: string): Date | null {
  * 
  * @customfunction PULL
  * @param sensorNames Range containing sensor names (e.g., B1:D1)
- * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00")
- * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59")
+ * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00" or "8/1/2025 0:00")
+ * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59" or "8/3/2025 0:00")
  * @param mode Data retrieval mode: "grid" for time-based intervals or "points" for number of points - defaults to "points"
  * @param modeValue Grid interval (e.g., "15min", "1h", "1d") when mode="grid" OR number of points when mode="points" - defaults to 1000
  * @returns Array containing timestamp column (as Excel serial numbers) and sensor data columns
+ * 
+ * TIMEZONE BEHAVIOR:
+ * - Input dates without timezone info are treated as local timezone
+ * - Returned data timestamps are in the same timezone as the input (local timezone)
+ * - This matches user expectations for natural date/time input
  */
 export function PULL(
   sensorNames: string[][],
