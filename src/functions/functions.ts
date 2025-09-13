@@ -170,6 +170,40 @@ function convertToExcelSerialNumber(timestamp: any): number {
 }
 
 /**
+ * Custom date parsing function to handle various date formats consistently
+ * @param dateString - Date string in various formats
+ * @returns Date object or null if parsing fails
+ */
+function parseDate(dateString: string): Date | null {
+  if (!dateString || typeof dateString !== 'string') {
+    return null;
+  }
+
+  // Handle ISO format (YYYY-MM-DDTHH:MM:SS)
+  if (dateString.includes('T')) {
+    return new Date(dateString);
+  }
+
+  // Handle M/D/YYYY H:MM format (e.g., "8/1/2025 0:00")
+  const mdyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+  if (mdyMatch) {
+    const [, month, day, year, hour, minute] = mdyMatch;
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+  }
+
+  // Handle M/D/YYYY format (e.g., "8/1/2025")
+  const mdyDateMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdyDateMatch) {
+    const [, month, day, year] = mdyDateMatch;
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  }
+
+  // Fallback to native Date parsing
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/**
  * Pulls time series data from Seeq sensors over a specified time range.
  * This is an array function that should be called on a range that can accommodate the output.
  * 
@@ -202,18 +236,13 @@ export function PULL(
     let startDate: Date;
     let endDate: Date;
     
-    // Try to parse dates consistently
-    try {
-      // Parse dates as local time
-      startDate = new Date(startDatetime);
-      endDate = new Date(endDatetime);
-    } catch (e) {
-      return [["Error: Invalid datetime format. Use ISO format: YYYY-MM-DDTHH:MM:SS"]];
-    }
-    
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return [["Error: Invalid datetime format. Use ISO format: YYYY-MM-DDTHH:MM:SS"]];
-    }
+  // Parse dates using custom parser
+  startDate = parseDate(startDatetime);
+  endDate = parseDate(endDatetime);
+  
+  if (!startDate || !endDate) {
+    return [["Error: Invalid datetime format. Use formats like: 8/1/2025 0:00 or 2024-01-01T00:00:00"]];
+  }
     
     if (startDate >= endDate) {
       return [["Error: Start datetime must be before end datetime"]];

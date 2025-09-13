@@ -1,5 +1,5 @@
 {
-  "version": "1.0.42",
+  "version": "1.0.43",
   "description": "Renamed PULL_SENSOR_DATA to PULL with enhanced mode support for grid and points",
   "buildDate": "2025-09-13",
   "changes": [
