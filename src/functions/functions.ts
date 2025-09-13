@@ -179,6 +179,16 @@ function parseDate(dateString: string): Date | null {
     return null;
   }
 
+  // Handle Excel serial numbers (e.g., "45870", "45874")
+  const serialNumber = parseFloat(dateString);
+  if (!isNaN(serialNumber) && serialNumber > 0 && serialNumber < 100000) {
+    // Excel serial number: days since 1900-01-01 (with 1900 leap year bug)
+    // Convert to JavaScript Date
+    const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
+    const jsDate = new Date(excelEpoch.getTime() + (serialNumber - 2) * 24 * 60 * 60 * 1000);
+    return jsDate;
+  }
+
   // Handle ISO format (YYYY-MM-DDTHH:MM:SS)
   if (dateString.includes('T')) {
     return new Date(dateString);
