@@ -10,7 +10,7 @@
  * 
  * This add-in provides 2 Excel functions for working with Seeq data:
  * - SEARCH_SENSORS: Search for sensors in your Seeq environment
- * - PULL_SENSOR_DATA: Pull time series data from Seeq sensors
+ * - PULL: Pull time series data from Seeq sensors
  * 
  * SETUP INSTRUCTIONS:
  * 1. Create a Seeq Access Key:
@@ -28,7 +28,9 @@
  * 
  * 3. Using the Functions:
  *    - SEARCH_SENSORS: =SEARCH_SENSORS(A1:C1) where A1:C1 contains sensor names
- *    - PULL_SENSOR_DATA: =PULL_SENSOR_DATA(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59","15min")
+ *    - PULL: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59) - defaults to 1000 points
+ *    - PULL with grid: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59","grid","15min")
+ *    - PULL with points: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59,"points",500)
  * 
  * TROUBLESHOOTING:
  * - If you see "#NAME?" errors, make sure the add-in is properly loaded
@@ -171,18 +173,20 @@ function convertToExcelSerialNumber(timestamp: any): number {
  * Pulls time series data from Seeq sensors over a specified time range.
  * This is an array function that should be called on a range that can accommodate the output.
  * 
- * @customfunction PULL_SENSOR_DATA
+ * @customfunction PULL
  * @param sensorNames Range containing sensor names (e.g., B1:D1)
  * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00")
  * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59")
- * @param grid Grid interval for data (e.g., "15min", "1h", "1d") - defaults to "15min"
+ * @param mode Data retrieval mode: "grid" for time-based intervals or "points" for number of points - defaults to "points"
+ * @param modeValue Grid interval (e.g., "15min", "1h", "1d") when mode="grid" OR number of points when mode="points" - defaults to 1000
  * @returns Array containing timestamp column (as Excel serial numbers) and sensor data columns
  */
-export function PULL_SENSOR_DATA(
+export function PULL(
   sensorNames: string[][],
   startDatetime: string,
   endDatetime: string,
-  grid: string = "15min"
+  mode: string = "points",
+  modeValue: string | number = 1000
 ): string[][] {
   try {
     // Flatten the sensor names array and filter out empty cells
@@ -206,10 +210,41 @@ export function PULL_SENSOR_DATA(
       return [["Error: Start datetime must be before end datetime"]];
     }
     
-    // Validate grid format
-    const gridPattern = /^(\d+)(min|h|d|s)$/;
-    if (!gridPattern.test(grid)) {
-      return [["Error: Invalid grid format. Use format like '15min', '1h', '1d', '30s'"]];
+    // Validate mode parameter
+    if (mode !== "grid" && mode !== "points") {
+      return [["Error: Mode must be 'grid' or 'points'"]];
+    }
+    
+    // Calculate grid based on mode
+    let grid: string;
+    if (mode === "grid") {
+      // Use modeValue as grid directly
+      grid = String(modeValue);
+      // Validate grid format
+      const gridPattern = /^(\d+)(min|h|d|s)$/;
+      if (!gridPattern.test(grid)) {
+        return [["Error: Invalid grid format. Use format like '15min', '1h', '1d', '30s'"]];
+      }
+    } else {
+      // mode === "points" - calculate grid from number of points
+      const numPoints = typeof modeValue === 'number' ? modeValue : parseInt(String(modeValue));
+      if (isNaN(numPoints) || numPoints <= 0) {
+        return [["Error: Number of points must be a positive integer"]];
+      }
+      
+      // Calculate time range in seconds
+      const timeRangeMs = endDate.getTime() - startDate.getTime();
+      const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
+      
+      // Calculate seconds per point (must be integer)
+      const secondsPerPoint = Math.floor(timeRangeSeconds / numPoints);
+      
+      if (secondsPerPoint < 1) {
+        return [["Error: Time range too short for requested number of points. Try fewer points or a longer time range."]];
+      }
+      
+      // Convert to grid format
+      grid = `${secondsPerPoint}s`;
     }
 
         // Check if we have stored credentials

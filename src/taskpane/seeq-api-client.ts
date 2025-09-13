@@ -59,7 +59,8 @@ export interface SeeqDataResult {
   time_range: {
     start: string;
     end: string;
-    grid: string;
+    mode: string;
+    modeValue: string | number;
   };
   error?: string;
 }
@@ -515,13 +516,30 @@ export class SeeqAPIClient {
   /**
    * Search for sensors and pull their data through proxy
    */
-  async searchAndPullSensors(sensorNames: string[], startTime: string, endTime: string, grid: string = '15min'): Promise<SeeqDataResult> {
+  async searchAndPullSensors(sensorNames: string[], startTime: string, endTime: string, mode: string = 'points', modeValue: string | number = 1000): Promise<SeeqDataResult> {
     try {
+      // Calculate grid based on mode
+      let grid: string;
+      if (mode === 'grid') {
+        grid = String(modeValue);
+      } else {
+        // mode === 'points' - calculate grid from number of points
+        const numPoints = typeof modeValue === 'number' ? modeValue : parseInt(String(modeValue));
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
+        const timeRangeMs = endDate.getTime() - startDate.getTime();
+        const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
+        const secondsPerPoint = Math.floor(timeRangeSeconds / numPoints);
+        grid = `${secondsPerPoint}s`;
+      }
+
       this.logDiagnostic('PROXY_SEARCH_PULL_START', `Searching and pulling sensor data through proxy`, {
         sensorNames,
         startTime,
         endTime,
-        grid,
+        mode,
+        modeValue,
+        calculatedGrid: grid,
         seeqServerUrl: this.seeqServerUrl
       });
 
@@ -566,7 +584,8 @@ export class SeeqAPIClient {
           time_range: {
             start: startTime,
             end: endTime,
-            grid: grid
+            mode: mode,
+            modeValue: modeValue
           }
         };
       } else {
@@ -585,7 +604,7 @@ export class SeeqAPIClient {
           data_columns: [],
           data_index: [],
           sensor_count: 0,
-          time_range: { start: startTime, end: endTime, grid }
+          time_range: { start: startTime, end: endTime, mode, modeValue }
         };
       }
     } catch (error: any) {
@@ -603,7 +622,7 @@ export class SeeqAPIClient {
         data_columns: [],
         data_index: [],
         sensor_count: 0,
-        time_range: { start: startTime, end: endTime, grid }
+        time_range: { start: startTime, end: endTime, mode, modeValue }
       };
     }
   }

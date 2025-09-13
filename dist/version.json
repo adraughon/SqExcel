@@ -1,13 +1,14 @@
 {
-  "version": "1.0.36",
-  "description": "Enhanced user experience: Improved UI, removed console logging, and added comprehensive user guide",
-  "buildDate": "2025-09-08",
+  "version": "1.0.38",
+  "description": "Renamed PULL_SENSOR_DATA to PULL with enhanced mode support for grid and points",
+  "buildDate": "2025-09-13",
   "changes": [
-    "Enhanced user guide with step-by-step access key setup instructions",
-    "Added detailed function examples and usage instructions",
-    "Removed all console logging for better security in Excel environment",
-    "Simplified version display to show only version number",
-    "Added contact support link for user assistance",
-    "Improved UI styling for better readability and user experience"
+    "Renamed PULL_SENSOR_DATA function to PULL for simplicity",
+    "Added mode parameter: 'grid' for time intervals or 'points' for number of data points",
+    "Added modeValue parameter: grid interval (e.g., '15min') or number of points (e.g., 1000)",
+    "Default mode is 'points' with 1000 points for better user experience",
+    "Updated UI to support both grid and points modes with dynamic form fields",
+    "Enhanced function documentation with examples for both modes",
+    "Maintained backward compatibility with existing grid-based functionality"
   ]
 }

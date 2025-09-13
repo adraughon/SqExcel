@@ -3,8 +3,8 @@
     "functions": [
         {
             "description": "Pulls time series data from Seeq sensors over a specified time range.\nThis is an array function that should be called on a range that can accommodate the output.",
-            "id": "PULL_SENSOR_DATA",
-            "name": "PULL_SENSOR_DATA",
+            "id": "PULL",
+            "name": "PULL",
             "parameters": [
                 {
                     "description": "Range containing sensor names (e.g., B1:D1)",
@@ -23,10 +23,16 @@
                     "type": "string"
                 },
                 {
-                    "description": "Grid interval for data (e.g., \"15min\", \"1h\", \"1d\") - defaults to \"15min\"",
-                    "name": "grid",
+                    "description": "Data retrieval mode: \"grid\" for time-based intervals or \"points\" for number of points - defaults to \"points\"",
+                    "name": "mode",
                     "optional": true,
                     "type": "string"
+                },
+                {
+                    "description": "Grid interval (e.g., \"15min\", \"1h\", \"1d\") when mode=\"grid\" OR number of points when mode=\"points\" - defaults to 1000",
+                    "name": "modeValue",
+                    "optional": true,
+                    "type": "any"
                 }
             ],
             "result": {

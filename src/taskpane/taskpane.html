@@ -96,16 +96,22 @@
                     </div>
                     
                     <div class="function-example">
-                        <h5>📊 PULL_SENSOR_DATA</h5>
+                        <h5>📊 PULL</h5>
                         <p>Get time series data from sensors:</p>
-                        <code>=PULL_SENSOR_DATA(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59","15min")</code>
-                        <p><small>Parameters: sensor names, start time, end time, grid interval (15min, 1h, 1d, etc.)</small></p>
+                        <code>=PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59)</code>
+                        <p><small>Default: 1000 points across the time range</small></p>
+                        <br>
+                        <code>=PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59,"grid","15min")</code>
+                        <p><small>Grid mode: Specify time interval (15min, 1h, 1d, etc.)</small></p>
+                        <br>
+                        <code>=PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59,"points",500)</code>
+                        <p><small>Points mode: Specify number of data points</small></p>
                         <div class="function-returns">
                             <strong>Returns:</strong> A time series table with:
                             <ul>
                                 <li><strong>Timestamp column:</strong> Time points (as Excel serial numbers - format as dates to see readable times)</li>
                                 <li><strong>Data columns:</strong> One column per sensor with actual measurement values</li>
-                                <li><strong>Grid spacing:</strong> Data points at your specified interval (15min, 1h, etc.)</li>
+                                <li><strong>Grid spacing:</strong> Data points at your specified interval or calculated from points</li>
                             </ul>
                             <p><em>Note: Timestamps appear as large numbers - select the timestamp column and format as Date to see readable times!</em></p>
                         </div>
@@ -138,8 +144,15 @@
                 <input type="datetime-local" id="end-time" class="ms-TextField-field">
             </div>
             <div class="form-group">
-                <label for="grid-interval">Grid Interval:</label>
-                <input type="text" id="grid-interval" placeholder="15min" class="ms-TextField-field">
+                <label for="data-mode">Data Mode:</label>
+                <select id="data-mode" class="ms-TextField-field">
+                    <option value="points">Points (number of data points)</option>
+                    <option value="grid">Grid (time interval)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="mode-value" id="mode-value-label">Number of Points:</label>
+                <input type="number" id="mode-value" placeholder="1000" value="1000" class="ms-TextField-field">
             </div>
             <div class="search-buttons">
                 <button id="search-sensors" class="ms-Button ms-Button--primary">Search Sensors</button>

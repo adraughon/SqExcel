@@ -92,6 +92,12 @@ function initializeSeeqAuth(): void {
     pullDataBtn.onclick = pullSensorData;
   }
 
+  // Add event listener for mode selection change
+  const dataModeSelect = document.getElementById("data-mode") as HTMLSelectElement;
+  if (dataModeSelect) {
+    dataModeSelect.onchange = handleModeChange;
+  }
+
   // Load saved credentials if available
   loadSavedCredentials();
   
@@ -99,6 +105,27 @@ function initializeSeeqAuth(): void {
   showAuthStatus(`Add-in Version: ${ADDIN_VERSION}`, "info");
 }
 
+function handleModeChange(): void {
+  const dataModeSelect = document.getElementById("data-mode") as HTMLSelectElement;
+  const modeValueInput = document.getElementById("mode-value") as HTMLInputElement;
+  const modeValueLabel = document.getElementById("mode-value-label") as HTMLLabelElement;
+  
+  if (!dataModeSelect || !modeValueInput || !modeValueLabel) return;
+  
+  const selectedMode = dataModeSelect.value;
+  
+  if (selectedMode === "grid") {
+    modeValueLabel.textContent = "Grid Interval:";
+    modeValueInput.placeholder = "15min";
+    modeValueInput.value = "15min";
+    modeValueInput.type = "text";
+  } else {
+    modeValueLabel.textContent = "Number of Points:";
+    modeValueInput.placeholder = "1000";
+    modeValueInput.value = "1000";
+    modeValueInput.type = "number";
+  }
+}
 
 async function authenticateWithSeeq(): Promise<void> {
   const url = (document.getElementById("seeq-url") as HTMLInputElement)?.value;
@@ -178,7 +205,8 @@ async function pullSensorData(): Promise<void> {
   const sensorNamesInput = (document.getElementById("sensor-names") as HTMLInputElement)?.value;
   const startTimeInput = (document.getElementById("start-time") as HTMLInputElement)?.value;
   const endTimeInput = (document.getElementById("end-time") as HTMLInputElement)?.value;
-  const gridInput = (document.getElementById("grid-interval") as HTMLInputElement)?.value;
+  const dataMode = (document.getElementById("data-mode") as HTMLSelectElement)?.value;
+  const modeValueInput = (document.getElementById("mode-value") as HTMLInputElement)?.value;
   
   if (!sensorNamesInput || !startTimeInput || !endTimeInput) {
     showAuthStatus("Please fill in all required fields", "error");
@@ -186,7 +214,8 @@ async function pullSensorData(): Promise<void> {
   }
 
   const sensorNames = sensorNamesInput.split(',').map(name => name.trim()).filter(name => name);
-  const grid = gridInput || "15min";
+  const mode = dataMode || "points";
+  const modeValue = modeValueInput || (mode === "points" ? "1000" : "15min");
   
   if (sensorNames.length === 0) {
     showAuthStatus("Please enter valid sensor names", "error");
@@ -202,7 +231,7 @@ async function pullSensorData(): Promise<void> {
       return;
     }
     
-    const result = await seeqClient.searchAndPullSensors(sensorNames, startTimeInput, endTimeInput, grid);
+    const result = await seeqClient.searchAndPullSensors(sensorNames, startTimeInput, endTimeInput, mode, modeValue);
     
     if (result.success) {
       showAuthStatus(`Retrieved data for ${result.sensor_count} sensors`, "success");
