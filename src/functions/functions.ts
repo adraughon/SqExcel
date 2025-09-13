@@ -274,19 +274,20 @@ export function PULL(
         return [["Error: Number of points must be a positive integer"]];
       }
       
-      // Calculate seconds per point (must be integer)
-      const secondsPerPoint = Math.floor(timeRangeSeconds / numPoints);
+      // Calculate minutes per point (must be integer)
+      const timeRangeMinutes = Math.floor(timeRangeSeconds / 60);
+      const minutesPerPoint = Math.floor(timeRangeMinutes / numPoints);
       
-      if (secondsPerPoint < 1) {
+      if (minutesPerPoint < 1) {
         return [
           ["Error: Time range too short for requested number of points. Try fewer points or a longer time range."],
-          [`Debug: Time range: ${timeRangeSeconds}s (${(timeRangeSeconds/3600).toFixed(2)}h), Points: ${numPoints}`],
+          [`Debug: Time range: ${timeRangeMinutes}min (${(timeRangeMinutes/60).toFixed(2)}h), Points: ${numPoints}`],
           [`Debug: Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`]
         ];
       }
       
       // Convert to grid format
-      grid = `${secondsPerPoint}s`;
+      grid = `${minutesPerPoint}min`;
     }
 
         // Check if we have stored credentials
@@ -325,7 +326,8 @@ export function PULL(
       
       // Add debug info as the first cell of the first data row
       if (dataRows.length > 0) {
-        dataRows[0][0] = `Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}, TimeRange=${timeRangeSeconds}s`;
+        const timeRangeMinutes = Math.floor(timeRangeSeconds / 60);
+        dataRows[0][0] = `Debug: Grid=${grid}, Points=${modeValue}, Actual rows=${dataRows.length}, TimeRange=${timeRangeMinutes}min`;
       }
       
       return [headers].concat(dataRows);
