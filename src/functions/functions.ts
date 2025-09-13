@@ -224,6 +224,10 @@ export function PULL(
       return [["Error: Mode must be 'grid' or 'points'"]];
     }
     
+    // Calculate time range in seconds (needed for both modes)
+    const timeRangeMs = endDate.getTime() - startDate.getTime();
+    const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
+    
     // Calculate grid based on mode
     let grid: string;
     if (mode === "grid") {
@@ -240,10 +244,6 @@ export function PULL(
       if (isNaN(numPoints) || numPoints <= 0) {
         return [["Error: Number of points must be a positive integer"]];
       }
-      
-    // Calculate time range in seconds
-    const timeRangeMs = endDate.getTime() - startDate.getTime();
-    const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
       
       // Calculate seconds per point (must be integer)
       const secondsPerPoint = Math.floor(timeRangeSeconds / numPoints);
