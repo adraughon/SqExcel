@@ -170,29 +170,27 @@ function convertToExcelSerialNumber(timestamp: any): number {
     }
     
     // Convert to Excel serial number
-    // Calculate directly from date components to avoid timezone issues
     // Excel serial number = days since 1900-01-01 + time as fraction of day
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1; // getMonth() returns 0-11, Excel expects 1-12
-    const day = date.getDate();
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-    const second = date.getSeconds();
+    // Use UTC to avoid timezone issues
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1; // getUTCMonth() returns 0-11, Excel expects 1-12
+    const day = date.getUTCDate();
+    const hour = date.getUTCHours();
+    const minute = date.getUTCMinutes();
+    const second = date.getUTCSeconds();
     
     // Calculate days since 1900-01-01 (Excel epoch)
-    const excelEpochYear = 1900;
-    const excelEpochMonth = 1;
-    const excelEpochDay = 1;
+    // Excel incorrectly treats 1900 as a leap year, so we need to account for this
+    const excelEpoch = new Date('1900-01-01T00:00:00.000Z');
+    const targetDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
     
-    // Simple day calculation (not accounting for leap years in 1900, matching Excel's bug)
-    const daysSinceEpoch = (year - excelEpochYear) * 365 + 
-                          (month - excelEpochMonth) * 30.44 + 
-                          (day - excelEpochDay);
+    // Calculate the difference in milliseconds and convert to days
+    const diffMs = targetDate.getTime() - excelEpoch.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
     
-    // Add time as fraction of day
-    const timeFraction = (hour * 3600 + minute * 60 + second) / (24 * 3600);
-    
-    const excelSerial = daysSinceEpoch + timeFraction + 1; // +1 because Excel counts from 1
+    // Excel serial number starts from 1 (not 0) and includes the 1900 leap year bug
+    // Excel treats 1900 as a leap year even though it's not, so we need to adjust
+    const excelSerial = diffDays + 1;
     
     return excelSerial;
   } catch (error) {

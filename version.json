@@ -1,5 +1,5 @@
 {
-  "version": "1.0.54",
+  "version": "1.0.55",
   "description": "Fixed timezone handling in PULL function to use local timezone for user input dates",
   "buildDate": "2025-09-15",
   "changes": [
