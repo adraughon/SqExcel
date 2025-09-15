@@ -143,9 +143,17 @@ function convertToExcelSerialNumber(timestamp: any): number {
     let date: Date;
     
     if (typeof timestamp === 'string') {
-      // Try to parse ISO string or other date formats
-      // The backend now sends timestamps in the user's local timezone
-      date = new Date(timestamp);
+      // Parse naive local time strings manually to avoid timezone conversion
+      // Format: "YYYY-MM-DD HH:MM:SS"
+      const match = timestamp.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+      if (match) {
+        const [, year, month, day, hour, minute, second] = match;
+        // Create date in local timezone without timezone conversion
+        date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second));
+      } else {
+        // Fallback to standard parsing
+        date = new Date(timestamp);
+      }
     } else if (timestamp instanceof Date) {
       date = timestamp;
     } else if (typeof timestamp === 'number') {
@@ -164,7 +172,7 @@ function convertToExcelSerialNumber(timestamp: any): number {
     // Convert to Excel serial number
     // Excel serial number = (JS timestamp / (1000 * 60 * 60 * 24)) + 25569
     // Where 25569 is the number of days between 1900-01-01 and 1970-01-01
-    // This preserves the local timezone since the backend now sends local time
+    // Since we parsed as local time, this should preserve the local time
     const excelSerial = (date.getTime() / (1000 * 60 * 60 * 24)) + 25569;
     
     return excelSerial;
