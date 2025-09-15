@@ -79,6 +79,18 @@ export class SeeqAPIClient {
   }
 
   /**
+   * Get the user's IANA timezone from the browser/Excel webview
+   */
+  private getUserTimezone(): string {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return tz || 'UTC';
+    } catch (_e) {
+      return 'UTC';
+    }
+  }
+
+  /**
    * Log diagnostic information for debugging
    */
   private logDiagnostic(category: string, message: string, data?: any): void {
@@ -554,6 +566,8 @@ export class SeeqAPIClient {
           start_time: startTime,
           end_time: endTime,
           grid: grid,
+          // Provide user's timezone so backend can localize naive times
+          user_timezone: this.getUserTimezone(),
           username: this.credentials?.accessKey,
           password: this.credentials?.password,
           auth_provider: this.credentials?.authProvider || 'Seeq'

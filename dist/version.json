@@ -1,7 +1,7 @@
 {
-  "version": "1.0.51",
+  "version": "1.0.52",
   "description": "Fixed timezone handling in PULL function to use local timezone for user input dates",
-  "buildDate": "2025-09-13",
+  "buildDate": "2025-09-15",
   "changes": [
     "Fixed timezone issue where input dates were automatically converted to UTC",
     "Updated backend to preserve naive timestamps, allowing Seeq to use workstation timezone",

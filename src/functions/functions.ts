@@ -315,7 +315,14 @@ export function PULL(
     }
     
     // Get user's timezone
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const userTimezone = (function() {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return tz || 'UTC';
+      } catch (_e) {
+        return 'UTC';
+      }
+    })();
     
     // Call backend server with credentials
     const result = callBackendSync('/api/seeq/sensor-data', {
