@@ -101,6 +101,7 @@ export class SeeqAPIClient {
     const timezoneOffset = new Date().getTimezoneOffset();
     const now = new Date();
     const debugRow = {
+      'Timestamp': 'DEBUG_ROW',
       'DEBUG_TIMEZONE_OFFSET_MINUTES': timezoneOffset,
       'DEBUG_CURRENT_TIME_UTC': now.toISOString(),
       'DEBUG_CURRENT_TIME_LOCAL': now.toString(),

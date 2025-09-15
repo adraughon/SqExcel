@@ -417,10 +417,14 @@ function displayDataResults(result: any): void {
     
     // Check if first row contains debug information
     const firstRow = result.data[0];
-    const isDebugRow = firstRow && Object.keys(firstRow).some(key => key.startsWith('DEBUG_'));
+    const isDebugRow = firstRow && (firstRow.Timestamp === 'DEBUG_ROW' || Object.keys(firstRow).some(key => key.startsWith('DEBUG_')));
     
     let html = `
       <h3>Data Results (${result.data.length} rows)</h3>
+      <div style="background-color: #e8f4f8; padding: 10px; margin: 10px 0; border-radius: 5px;">
+        <strong>Debug Info:</strong> First row Timestamp = "${firstRow?.Timestamp || 'undefined'}", 
+        Has DEBUG keys: ${Object.keys(firstRow || {}).filter(key => key.startsWith('DEBUG_')).length > 0 ? 'YES' : 'NO'}
+      </div>
       <div class="results-table">
         <table>
           <thead>
