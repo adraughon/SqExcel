@@ -415,6 +415,10 @@ function displayDataResults(result: any): void {
   if (resultsDiv && result.data && result.data.length > 0) {
     const dataToShow = result.data.slice(0, 10); // Show first 10 rows
     
+    // Check if first row contains debug information
+    const firstRow = result.data[0];
+    const isDebugRow = firstRow && Object.keys(firstRow).some(key => key.startsWith('DEBUG_'));
+    
     let html = `
       <h3>Data Results (${result.data.length} rows)</h3>
       <div class="results-table">
@@ -443,6 +447,26 @@ function displayDataResults(result: any): void {
         ${result.data.length > 10 ? `<p><em>Showing first 10 of ${result.data.length} rows</em></p>` : ''}
       </div>
     `;
+    
+    // Add debug information if present
+    if (isDebugRow) {
+      html += `
+        <div style="margin-top: 20px; padding: 15px; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px;">
+          <h4>Debug Information (First Row)</h4>
+          <div style="font-family: monospace; font-size: 12px;">
+      `;
+      
+      Object.keys(firstRow).forEach(key => {
+        if (key.startsWith('DEBUG_')) {
+          html += `<div><strong>${key}:</strong> ${firstRow[key]}</div>`;
+        }
+      });
+      
+      html += `
+          </div>
+        </div>
+      `;
+    }
     
     resultsDiv.innerHTML = html;
   }

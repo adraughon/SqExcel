@@ -183,6 +183,13 @@ function convertToExcelSerialNumber(timestamp: any): number {
     const excelSerial = utcTime / (1000 * 60 * 60 * 24) + 25569;
     // 25569 is the Excel serial number for 1970-01-01 (Unix epoch)
     
+    // For debug calls, we'll return the serial number but log the debug info
+    if (typeof timestamp === 'string' && timestamp.includes('DEBUG')) {
+      // We can't return a string from a number function, so just return the serial
+      // The debug info will be visible in the data itself
+      return excelSerial;
+    }
+    
     return excelSerial;
   } catch (error) {
     // If any error occurs during conversion, return 0

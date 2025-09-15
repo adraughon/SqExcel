@@ -97,9 +97,37 @@ export class SeeqAPIClient {
   private adjustTimestampsForTimezone(data: any[]): any[] {
     if (!data || !Array.isArray(data)) return data;
     
-    // For now, let's try a different approach - don't adjust at all
-    // and see if the issue is in the date conversion function itself
-    return data;
+    // Add debug information as the first row
+    const timezoneOffset = new Date().getTimezoneOffset();
+    const now = new Date();
+    const debugRow = {
+      'DEBUG_TIMEZONE_OFFSET_MINUTES': timezoneOffset,
+      'DEBUG_CURRENT_TIME_UTC': now.toISOString(),
+      'DEBUG_CURRENT_TIME_LOCAL': now.toString(),
+      'DEBUG_TIMEZONE_NAME': Intl.DateTimeFormat().resolvedOptions().timeZone
+    };
+    
+    // Process the first data row for debugging
+    if (data.length > 0) {
+      const firstRow = data[0];
+      if (firstRow.Timestamp) {
+        const originalTimestamp = new Date(firstRow.Timestamp);
+        debugRow['DEBUG_ORIGINAL_TIMESTAMP'] = firstRow.Timestamp;
+        debugRow['DEBUG_ORIGINAL_PARSED_UTC'] = originalTimestamp.toISOString();
+        debugRow['DEBUG_ORIGINAL_PARSED_LOCAL'] = originalTimestamp.toString();
+        debugRow['DEBUG_ORIGINAL_GETTIME'] = originalTimestamp.getTime();
+      }
+      if (firstRow.index) {
+        const originalIndex = new Date(firstRow.index);
+        debugRow['DEBUG_ORIGINAL_INDEX'] = firstRow.index;
+        debugRow['DEBUG_INDEX_PARSED_UTC'] = originalIndex.toISOString();
+        debugRow['DEBUG_INDEX_PARSED_LOCAL'] = originalIndex.toString();
+        debugRow['DEBUG_INDEX_GETTIME'] = originalIndex.getTime();
+      }
+    }
+    
+    // Return debug row first, then original data
+    return [debugRow, ...data];
   }
 
   /**
