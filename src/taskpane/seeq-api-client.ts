@@ -97,31 +97,9 @@ export class SeeqAPIClient {
   private adjustTimestampsForTimezone(data: any[]): any[] {
     if (!data || !Array.isArray(data)) return data;
     
-    const timezoneOffset = new Date().getTimezoneOffset(); // Offset in minutes
-    const offsetMs = timezoneOffset * 60 * 1000; // Convert to milliseconds
-    
-    return data.map(row => {
-      const adjustedRow = { ...row };
-      
-      // Adjust timestamp fields
-      if (adjustedRow.Timestamp) {
-        const timestamp = new Date(adjustedRow.Timestamp);
-        if (!isNaN(timestamp.getTime())) {
-          // Subtract timezone offset to compensate for Excel's timezone handling
-          adjustedRow.Timestamp = new Date(timestamp.getTime() - offsetMs).toISOString();
-        }
-      }
-      
-      if (adjustedRow.index) {
-        const timestamp = new Date(adjustedRow.index);
-        if (!isNaN(timestamp.getTime())) {
-          // Subtract timezone offset to compensate for Excel's timezone handling
-          adjustedRow.index = new Date(timestamp.getTime() - offsetMs).toISOString();
-        }
-      }
-      
-      return adjustedRow;
-    });
+    // For now, let's try a different approach - don't adjust at all
+    // and see if the issue is in the date conversion function itself
+    return data;
   }
 
   /**

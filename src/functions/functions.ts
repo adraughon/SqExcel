@@ -170,9 +170,17 @@ function convertToExcelSerialNumber(timestamp: any): number {
     }
     
     // Convert to Excel serial number
-    // Simple approach: convert to milliseconds since epoch and let Excel handle the rest
-    // The timezone offset will be handled in the frontend before calling this function
-    const excelSerial = date.getTime() / (1000 * 60 * 60 * 24) + 25569;
+    // Use UTC time to avoid timezone issues
+    const utcTime = Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds()
+    );
+    
+    const excelSerial = utcTime / (1000 * 60 * 60 * 24) + 25569;
     // 25569 is the Excel serial number for 1970-01-01 (Unix epoch)
     
     return excelSerial;
