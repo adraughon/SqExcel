@@ -170,10 +170,29 @@ function convertToExcelSerialNumber(timestamp: any): number {
     }
     
     // Convert to Excel serial number
-    // Excel serial number = (JS timestamp / (1000 * 60 * 60 * 24)) + 25569
-    // Where 25569 is the number of days between 1900-01-01 and 1970-01-01
-    // Since we parsed as local time, this should preserve the local time
-    const excelSerial = (date.getTime() / (1000 * 60 * 60 * 24)) + 25569;
+    // Calculate directly from date components to avoid timezone issues
+    // Excel serial number = days since 1900-01-01 + time as fraction of day
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // getMonth() returns 0-11, Excel expects 1-12
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    const second = date.getSeconds();
+    
+    // Calculate days since 1900-01-01 (Excel epoch)
+    const excelEpochYear = 1900;
+    const excelEpochMonth = 1;
+    const excelEpochDay = 1;
+    
+    // Simple day calculation (not accounting for leap years in 1900, matching Excel's bug)
+    const daysSinceEpoch = (year - excelEpochYear) * 365 + 
+                          (month - excelEpochMonth) * 30.44 + 
+                          (day - excelEpochDay);
+    
+    // Add time as fraction of day
+    const timeFraction = (hour * 3600 + minute * 60 + second) / (24 * 3600);
+    
+    const excelSerial = daysSinceEpoch + timeFraction + 1; // +1 because Excel counts from 1
     
     return excelSerial;
   } catch (error) {
