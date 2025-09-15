@@ -107,16 +107,16 @@ export class SeeqAPIClient {
       if (adjustedRow.Timestamp) {
         const timestamp = new Date(adjustedRow.Timestamp);
         if (!isNaN(timestamp.getTime())) {
-          // Add timezone offset to compensate for Excel's timezone handling
-          adjustedRow.Timestamp = new Date(timestamp.getTime() + offsetMs).toISOString();
+          // Subtract timezone offset to compensate for Excel's timezone handling
+          adjustedRow.Timestamp = new Date(timestamp.getTime() - offsetMs).toISOString();
         }
       }
       
       if (adjustedRow.index) {
         const timestamp = new Date(adjustedRow.index);
         if (!isNaN(timestamp.getTime())) {
-          // Add timezone offset to compensate for Excel's timezone handling
-          adjustedRow.index = new Date(timestamp.getTime() + offsetMs).toISOString();
+          // Subtract timezone offset to compensate for Excel's timezone handling
+          adjustedRow.index = new Date(timestamp.getTime() - offsetMs).toISOString();
         }
       }
       
