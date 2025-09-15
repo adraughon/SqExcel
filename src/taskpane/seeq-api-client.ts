@@ -91,6 +91,40 @@ export class SeeqAPIClient {
   }
 
   /**
+   * Adjust timestamps in data to account for timezone offset
+   * This ensures dates display correctly in Excel
+   */
+  private adjustTimestampsForTimezone(data: any[]): any[] {
+    if (!data || !Array.isArray(data)) return data;
+    
+    const timezoneOffset = new Date().getTimezoneOffset(); // Offset in minutes
+    const offsetMs = timezoneOffset * 60 * 1000; // Convert to milliseconds
+    
+    return data.map(row => {
+      const adjustedRow = { ...row };
+      
+      // Adjust timestamp fields
+      if (adjustedRow.Timestamp) {
+        const timestamp = new Date(adjustedRow.Timestamp);
+        if (!isNaN(timestamp.getTime())) {
+          // Add timezone offset to compensate for Excel's timezone handling
+          adjustedRow.Timestamp = new Date(timestamp.getTime() + offsetMs).toISOString();
+        }
+      }
+      
+      if (adjustedRow.index) {
+        const timestamp = new Date(adjustedRow.index);
+        if (!isNaN(timestamp.getTime())) {
+          // Add timezone offset to compensate for Excel's timezone handling
+          adjustedRow.index = new Date(timestamp.getTime() + offsetMs).toISOString();
+        }
+      }
+      
+      return adjustedRow;
+    });
+  }
+
+  /**
    * Log diagnostic information for debugging
    */
   private logDiagnostic(category: string, message: string, data?: any): void {
@@ -587,11 +621,14 @@ export class SeeqAPIClient {
           dataColumns: data.data_columns
         });
 
+        // Adjust timestamps for timezone offset before returning
+        const adjustedData = this.adjustTimestampsForTimezone(data.data || []);
+
         return {
           success: true,
           message: data.message || `Successfully retrieved data for ${data.sensor_count} sensors`,
           search_results: data.search_results || [],
-          data: data.data || [],
+          data: adjustedData,
           data_columns: data.data_columns || [],
           data_index: data.data_index || [],
           sensor_count: data.sensor_count || 0,

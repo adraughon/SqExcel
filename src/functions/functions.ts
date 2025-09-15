@@ -170,27 +170,10 @@ function convertToExcelSerialNumber(timestamp: any): number {
     }
     
     // Convert to Excel serial number
-    // Excel serial number = days since 1900-01-01 + time as fraction of day
-    // Use UTC to avoid timezone issues
-    const year = date.getUTCFullYear();
-    const month = date.getUTCMonth() + 1; // getUTCMonth() returns 0-11, Excel expects 1-12
-    const day = date.getUTCDate();
-    const hour = date.getUTCHours();
-    const minute = date.getUTCMinutes();
-    const second = date.getUTCSeconds();
-    
-    // Calculate days since 1900-01-01 (Excel epoch)
-    // Excel incorrectly treats 1900 as a leap year, so we need to account for this
-    const excelEpoch = new Date('1900-01-01T00:00:00.000Z');
-    const targetDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-    
-    // Calculate the difference in milliseconds and convert to days
-    const diffMs = targetDate.getTime() - excelEpoch.getTime();
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    
-    // Excel serial number starts from 1 (not 0) and includes the 1900 leap year bug
-    // Excel treats 1900 as a leap year even though it's not, so we need to adjust
-    const excelSerial = diffDays + 1;
+    // Simple approach: convert to milliseconds since epoch and let Excel handle the rest
+    // The timezone offset will be handled in the frontend before calling this function
+    const excelSerial = date.getTime() / (1000 * 60 * 60 * 24) + 25569;
+    // 25569 is the Excel serial number for 1970-01-01 (Unix epoch)
     
     return excelSerial;
   } catch (error) {
