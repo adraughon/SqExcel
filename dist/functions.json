@@ -56,6 +56,42 @@
                 "dimensionality": "matrix",
                 "type": "string"
             }
+        },
+        {
+            "description": "Gets the current value of a sensor at the present time.\nReturns a single-cell scalar value.",
+            "id": "CURRENT",
+            "name": "CURRENT",
+            "parameters": [
+                {
+                    "description": "Name of the sensor (e.g., \"Area/Tag\")",
+                    "name": "sensorName",
+                    "type": "string"
+                }
+            ],
+            "result": {}
+        },
+        {
+            "description": "Computes the average value of a sensor over a time range using a 100-point grid.\nReturns a single-cell scalar value.",
+            "id": "AVERAGE",
+            "name": "AVERAGE",
+            "parameters": [
+                {
+                    "description": "Name of the sensor (e.g., \"Area/Tag\")",
+                    "name": "sensorName",
+                    "type": "string"
+                },
+                {
+                    "description": "Start time (e.g., \"2024-01-01T00:00:00\" or \"8/1/2025 0:00\")",
+                    "name": "startDatetime",
+                    "type": "string"
+                },
+                {
+                    "description": "End time (e.g., \"2024-01-31T23:59:59\" or \"8/1/2025 1:40\")",
+                    "name": "endDatetime",
+                    "type": "string"
+                }
+            ],
+            "result": {}
         }
     ]
 }

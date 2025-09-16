@@ -485,4 +485,164 @@ export function SEARCH_SENSORS(sensorNames: string[][]): string[][] {
   }
 }
 
+/**
+ * Gets the current value of a sensor at the present time.
+ * Returns a single-cell scalar value.
+ * 
+ * @customfunction CURRENT
+ * @param sensorName Name of the sensor (e.g., "Area/Tag")
+ * @returns Current value as a scalar, or an error string
+ */
+export function CURRENT(sensorName: string): any {
+  try {
+    if (!sensorName || typeof sensorName !== 'string' || sensorName.trim() === '') {
+      return "Error: Sensor name is required";
+    }
+
+    const authCredentials = getStoredCredentials();
+    if (!authCredentials) {
+      return "Error: Not authenticated to Seeq. Please use the SqExcel taskpane to authenticate first.";
+    }
+
+    // Determine a short time window ending now, using user's timezone context
+    const now = new Date();
+    const endDatetime = now.toISOString();
+    const startDatetime = new Date(now.getTime() - 60 * 1000).toISOString(); // last 60 seconds
+
+    // Request at 1-second grid and take the latest value
+    const userTimezone = (function() {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return tz || 'UTC';
+      } catch (_e) {
+        return 'UTC';
+      }
+    })();
+
+    const result = callBackendSync('/api/seeq/sensor-data', {
+      sensorNames: [sensorName.trim()],
+      startDatetime,
+      endDatetime,
+      grid: '1s',
+      userTimezone,
+      url: authCredentials.url,
+      accessKey: authCredentials.accessKey,
+      password: authCredentials.password,
+      authProvider: "Seeq",
+      ignoreSslErrors: false
+    });
+
+    if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+      const columns: string[] = result.data_columns || [];
+      if (!columns || columns.length === 0) {
+        return "Error: No data columns returned";
+      }
+      const valueColumn = columns[0];
+      // Take the last row's value
+      const lastRow = result.data[result.data.length - 1] || {};
+      const value = lastRow[valueColumn];
+      return (value !== undefined && value !== null) ? value : "Error: No current value available";
+    }
+
+    return "Error: " + (result.error || result.message || "No data returned");
+  } catch (error) {
+    return "Error: " + (error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+/**
+ * Computes the average value of a sensor over a time range using a 100-point grid.
+ * Returns a single-cell scalar value.
+ * 
+ * @customfunction AVERAGE
+ * @param sensorName Name of the sensor (e.g., "Area/Tag")
+ * @param startDatetime Start time (e.g., "2024-01-01T00:00:00" or "8/1/2025 0:00")
+ * @param endDatetime End time (e.g., "2024-01-31T23:59:59" or "8/1/2025 1:40")
+ * @returns Average value as a scalar, or an error string
+ */
+export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: string): any {
+  try {
+    if (!sensorName || typeof sensorName !== 'string' || sensorName.trim() === '') {
+      return "Error: Sensor name is required";
+    }
+
+    const startDate = parseDate(startDatetime);
+    const endDate = parseDate(endDatetime);
+
+    if (!startDate || !endDate) {
+      return "Error: Invalid datetime format. Use formats like: 8/1/2025 0:00 or 2024-01-01T00:00:00";
+    }
+    if (startDate >= endDate) {
+      return "Error: Start datetime must be before end datetime";
+    }
+
+    const authCredentials = getStoredCredentials();
+    if (!authCredentials) {
+      return "Error: Not authenticated to Seeq. Please use the SqExcel taskpane to authenticate first.";
+    }
+
+    // Determine grid from 100 points
+    const timeRangeSeconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+    const points = 100;
+    const secondsPerPoint = Math.floor(timeRangeSeconds / points);
+    if (secondsPerPoint < 1) {
+      return "Error: Time range too short for 100 points. Use a longer range.";
+    }
+    const grid = `${secondsPerPoint}s`;
+
+    const userTimezone = (function() {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return tz || 'UTC';
+      } catch (_e) {
+        return 'UTC';
+      }
+    })();
+
+    const result = callBackendSync('/api/seeq/sensor-data', {
+      sensorNames: [sensorName.trim()],
+      startDatetime,
+      endDatetime,
+      grid,
+      userTimezone,
+      url: authCredentials.url,
+      accessKey: authCredentials.accessKey,
+      password: authCredentials.password,
+      authProvider: "Seeq",
+      ignoreSslErrors: false
+    });
+
+    if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+      const columns: string[] = result.data_columns || [];
+      if (!columns || columns.length === 0) {
+        return "Error: No data columns returned";
+      }
+      const valueColumn = columns[0];
+      let sum = 0;
+      let count = 0;
+      for (const row of result.data) {
+        const v = row[valueColumn];
+        if (typeof v === 'number') {
+          sum += v;
+          count += 1;
+        } else if (typeof v === 'string') {
+          const parsed = parseFloat(v);
+          if (!isNaN(parsed)) {
+            sum += parsed;
+            count += 1;
+          }
+        }
+      }
+      if (count === 0) {
+        return "Error: No numeric data to average";
+      }
+      return sum / count;
+    }
+
+    return "Error: " + (result.error || result.message || "No data returned");
+  } catch (error) {
+    return "Error: " + (error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
 // DEBUG function removed as part of cleanup
