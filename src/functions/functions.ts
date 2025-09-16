@@ -472,3 +472,64 @@ export function SEARCH_SENSORS(sensorNames: string[][]): string[][] {
     return [["Error: " + (error instanceof Error ? error.message : 'Unknown error')]];
   }
 }
+
+/**
+ * Timestamp diagnostics helper exposed to Excel for debugging timezone issues.
+ * Place =DEBUG(A1) or =DEBUG("8/1/2025 00:00") in a cell to see details.
+ *
+ * @customfunction DEBUG
+ * @param input Timestamp string or serial to diagnose
+ * @returns 2D table of key/value diagnostics
+ */
+export function DEBUG(input: string): string[][] {
+  try {
+    const rows: string[][] = [];
+    const now = new Date();
+    const tzOffsetMin = now.getTimezoneOffset();
+    const tzName = (() => {
+      try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'; } catch (_e) { return 'Unknown'; }
+    })();
+
+    rows.push(["Input", String(input)]);
+    rows.push(["Timezone name", tzName]);
+    rows.push(["Timezone offset (min)", String(tzOffsetMin)]);
+
+    // Parse using native Date first
+    const nativeDate = new Date(input as any);
+    rows.push(["Native parse valid", String(!isNaN(nativeDate.getTime()))]);
+    rows.push(["Native local", isNaN(nativeDate.getTime()) ? "Invalid" : nativeDate.toString()]);
+    rows.push(["Native UTC ISO", isNaN(nativeDate.getTime()) ? "Invalid" : nativeDate.toISOString()]);
+    rows.push(["Native getTime()", isNaN(nativeDate.getTime()) ? "Invalid" : String(nativeDate.getTime())]);
+
+    // Parse using custom parser
+    const customDate = parseDate(String(input));
+    rows.push(["Custom parse valid", String(!!customDate && !isNaN(customDate.getTime()))]);
+    rows.push(["Custom local", !customDate ? "Invalid" : customDate.toString()]);
+    rows.push(["Custom UTC ISO", !customDate ? "Invalid" : customDate.toISOString()]);
+    rows.push(["Custom getTime()", !customDate ? "Invalid" : String(customDate.getTime())]);
+
+    // Excel serial using our converter
+    const serialFromInput = convertToExcelSerialNumber(input);
+    rows.push(["Serial (convertToExcelSerialNumber(input))", String(serialFromInput)]);
+
+    if (customDate && !isNaN(customDate.getTime())) {
+      const serialFromCustom = convertToExcelSerialNumber(customDate);
+      rows.push(["Serial (convertToExcelSerialNumber(customDate))", String(serialFromCustom)]);
+
+      // Show effect of subtracting vs adding the timezone offset (in ms)
+      const offsetMs = tzOffsetMin * 60 * 1000;
+      const minusOffset = new Date(customDate.getTime() - offsetMs);
+      const plusOffset = new Date(customDate.getTime() + offsetMs);
+      rows.push(["Custom minus offset local", minusOffset.toString()]);
+      rows.push(["Custom minus offset UTC ISO", minusOffset.toISOString()]);
+      rows.push(["Custom plus offset local", plusOffset.toString()]);
+      rows.push(["Custom plus offset UTC ISO", plusOffset.toISOString()]);
+      rows.push(["Serial (custom minus offset)", String(convertToExcelSerialNumber(minusOffset))]);
+      rows.push(["Serial (custom plus offset)", String(convertToExcelSerialNumber(plusOffset))]);
+    }
+
+    return [["Key", "Value"], ...rows];
+  } catch (e) {
+    return [["Error", e instanceof Error ? e.message : "Unknown error"]];
+  }
+}
