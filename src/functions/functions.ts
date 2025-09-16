@@ -139,53 +139,60 @@ function callBackendSync(endpoint: string, data: any = null): any {
  */
 function convertToExcelSerialNumber(timestamp: any): number {
   try {
-    // Handle different timestamp formats that might come from the backend
-    let date: Date;
-    
-    if (typeof timestamp === 'string') {
-      // Parse naive local time strings manually to avoid timezone conversion
-      // Format: "YYYY-MM-DD HH:MM:SS"
-      const match = timestamp.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-      if (match) {
-        const [, year, month, day, hour, minute, second] = match;
-        // Create date in local timezone without timezone conversion
-        date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second));
+    // Normalize the input into a Date representing the intended moment-in-time
+    let date: Date | null = null;
+
+    if (timestamp instanceof Date) {
+      date = new Date(timestamp.getTime());
+    } else if (typeof timestamp === 'number') {
+      // Heuristics:
+      // - Excel serials are usually < 100000
+      // - Unix ms timestamps are > 10^11, Unix seconds are between 10^9 and 10^10
+      if (timestamp > 1e11) {
+        // treat as Unix milliseconds
+        date = new Date(timestamp);
+      } else if (timestamp > 1e9 && timestamp < 1e11) {
+        // treat as Unix seconds
+        date = new Date(timestamp * 1000);
+      } else if (timestamp > 0 && timestamp < 100000) {
+        // treat as Excel serial number directly, convert to JS Date first
+        const excelSerial = timestamp;
+        // Excel epoch 1899-12-30, and Excel has 1900-leap-year bug; our serials assume the typical Excel system
+        const daysSinceUnixEpoch = excelSerial - 25569; // days difference to 1970-01-01
+        const ms = Math.round(daysSinceUnixEpoch * 86400000);
+        // Create Date at UTC time corresponding to that serial's wall-clock
+        date = new Date(ms);
       } else {
-        // Fallback to standard parsing
+        // Fallback: treat as ms
         date = new Date(timestamp);
       }
-    } else if (timestamp instanceof Date) {
-      date = timestamp;
-    } else if (typeof timestamp === 'number') {
-      // Handle Unix timestamp
-      date = new Date(timestamp);
-    } else {
-      // Fallback for unknown formats
-      return 0; // Return 0 for invalid dates
+    } else if (typeof timestamp === 'string') {
+      // Handle ISO-like strings directly (native will keep instant with timezone if present)
+      // Also handle "YYYY-MM-DD HH:MM:SS" as local time
+      const localMatch = timestamp.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+      if (localMatch) {
+        const [, y, m, d, hh, mm, ss] = localMatch;
+        date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm), parseInt(ss), 0);
+      } else {
+        // Native parse (will interpret without timezone as local)
+        const nd = new Date(timestamp);
+        date = isNaN(nd.getTime()) ? null : nd;
+      }
     }
-    
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return 0; // Return 0 for invalid dates
+
+    if (!date || isNaN(date.getTime())) {
+      return 0;
     }
-    
-    // Convert to Excel serial number
-    // Goal: preserve LOCAL wall-clock time when shown in Excel (Excel is timezone-agnostic)
-    // Strategy: subtract the local timezone offset so that local midnight stays midnight in serial fraction
-    const tzOffsetMs = date.getTimezoneOffset() * 60 * 1000; // minutes -> ms
-    const localWallClockMs = date.getTime() - tzOffsetMs;
-    const excelSerial = localWallClockMs / (1000 * 60 * 60 * 24) + 25569; // 25569 = days from 1899-12-30 to 1970-01-01
-    
-    // For debug calls, we'll return the serial number but log the debug info
-    if (typeof timestamp === 'string' && timestamp.includes('DEBUG')) {
-      // We can't return a string from a number function, so just return the serial
-      // The debug info will be visible in the data itself
-      return excelSerial;
-    }
-    
-    return excelSerial;
-  } catch (error) {
-    // If any error occurs during conversion, return 0
+
+    // Convert to Excel serial number using UTC components plus local offset once.
+    // This preserves exact wall-clock minutes/seconds and avoids double-offsetting across DST.
+    const tzOffsetMin = date.getTimezoneOffset();
+    const utcMs = date.getTime();
+    const localWallClockMs = utcMs - tzOffsetMin * 60000;
+    const serial = localWallClockMs / 86400000 + 25569;
+
+    return serial;
+  } catch (_err) {
     return 0;
   }
 }
@@ -200,36 +207,39 @@ function parseDate(dateString: string): Date | null {
     return null;
   }
 
-  // Handle Excel serial numbers (e.g., "45870", "45874")
-  const serialNumber = parseFloat(dateString);
-  if (!isNaN(serialNumber) && serialNumber > 0 && serialNumber < 100000) {
-    // Excel serial number: days since 1900-01-01 (with 1900 leap year bug)
-    // Convert to JavaScript Date
-    const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
-    const jsDate = new Date(excelEpoch.getTime() + (serialNumber - 2) * 24 * 60 * 60 * 1000);
-    return jsDate;
+  // Excel serial numbers (plain numeric strings under 100000)
+  const trimmed = dateString.trim();
+  if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
+    const serialNumber = parseFloat(trimmed);
+    if (!isNaN(serialNumber) && serialNumber > 0 && serialNumber < 100000) {
+      // Convert Excel serial to JS Date via UTC math to avoid local drift
+      const daysSinceUnixEpoch = serialNumber - 25569;
+      const msUtc = Math.round(daysSinceUnixEpoch * 86400000);
+      return new Date(msUtc);
+    }
   }
 
-  // Handle ISO format (YYYY-MM-DDTHH:MM:SS)
+  // ISO format -> rely on native
   if (dateString.includes('T')) {
-    return new Date(dateString);
+    const d = new Date(dateString);
+    return isNaN(d.getTime()) ? null : d;
   }
 
-  // Handle M/D/YYYY H:MM format (e.g., "8/1/2025 0:00")
+  // M/D/YYYY H:MM (local)
   const mdyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
   if (mdyMatch) {
     const [, month, day, year, hour, minute] = mdyMatch;
     return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
   }
 
-  // Handle M/D/YYYY format (e.g., "8/1/2025")
+  // M/D/YYYY (local midnight)
   const mdyDateMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (mdyDateMatch) {
     const [, month, day, year] = mdyDateMatch;
     return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   }
 
-  // Fallback to native Date parsing
+  // Fallback
   const date = new Date(dateString);
   return isNaN(date.getTime()) ? null : date;
 }
