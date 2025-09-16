@@ -180,9 +180,15 @@ function convertToExcelSerialNumber(timestamp: any): number {
         const [, y, m, d, hh, mm, ss] = localMatch;
         date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm), parseInt(ss), 0);
       } else {
-        // Native parse (will interpret without timezone as local)
-        const nd = new Date(timestamp);
-        date = isNaN(nd.getTime()) ? null : nd;
+        // Try custom parser for M/D/YYYY style and AM/PM variants
+        const parsed = parseDate(timestamp);
+        if (parsed && !isNaN(parsed.getTime())) {
+          date = parsed;
+        } else {
+          // Native parse (will interpret without timezone as local)
+          const nd = new Date(timestamp);
+          date = isNaN(nd.getTime()) ? null : nd;
+        }
       }
     }
 
@@ -235,18 +241,11 @@ function parseDate(dateString: string): Date | null {
     return isNaN(d.getTime()) ? null : d;
   }
 
-  // M/D/YYYY H:MM (local)
-  const mdyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
-  if (mdyMatch) {
-    const [, month, day, year, hour, minute] = mdyMatch;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
-  }
-
-  // M/D/YYYY (local midnight)
-  const mdyDateMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (mdyDateMatch) {
-    const [, month, day, year] = mdyDateMatch;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  // Handle YYYY-MM-DD HH:MM:SS as local time
+  const ymdLocal = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+  if (ymdLocal) {
+    const [, y, m, d, hh, mm, ss] = ymdLocal;
+    return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10), parseInt(hh, 10), parseInt(mm, 10), parseInt(ss, 10));
   }
 
   // Fallback
