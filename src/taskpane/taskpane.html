@@ -38,19 +38,19 @@
             <h3 class="text-lg font-medium mb-3">Seeq Authentication</h3>
             <div class="grid grid-cols-1 gap-3">
                 <label class="block">
-                    <span class="text-sm text-gray-600">Seeq Server URL</span>
-                    <input type="url" id="seeq-url" placeholder="https://your-server.seeq.site" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                    <span class="text-sm text-gray-700">Seeq Server URL</span>
+                    <input type="url" id="seeq-url" placeholder="https://your-server.seeq.site" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                 </label>
                 <label class="block">
-                    <span class="text-sm text-gray-600">Access Key</span>
-                    <input type="text" id="seeq-access-key" placeholder="Your Seeq access key" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                    <span class="text-sm text-gray-700">Access Key</span>
+                    <input type="text" id="seeq-access-key" placeholder="Your Seeq access key" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                 </label>
                 <label class="block">
-                    <span class="text-sm text-gray-600">Password</span>
-                    <input type="password" id="seeq-password" placeholder="Your Seeq password" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                    <span class="text-sm text-gray-700">Password</span>
+                    <input type="password" id="seeq-password" placeholder="Your Seeq password" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                 </label>
-                <div class="flex items-center gap-2 pt-1">
-                    <button id="authenticate" class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Authenticate</button>
+                <div class="flex items-center gap-2 pt-1 flex-wrap">
+                    <button id="authenticate" class="px-3 py-1.5 text-sm text-white rounded-md hover:opacity-95" style="background-color: #55924C;">Authenticate</button>
                     <button id="logout" class="px-3 py-1.5 text-sm bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200" style="display: none;">Logout</button>
                 </div>
             </div>
@@ -67,12 +67,27 @@
             </ol>
 
             <h4 class="text-sm font-semibold mb-2">Quick Functions</h4>
-            <ul class="text-sm space-y-1">
-                <li class="flex items-start gap-2"><code class="bg-gray-100 rounded px-1.5 py-0.5">=SqExcel.SEARCH_SENSORS(A1:C1)</code><span class="text-gray-600">verify sensors; see unit/description</span></li>
-                <li class="flex items-start gap-2"><code class="bg-gray-100 rounded px-1.5 py-0.5">=SqExcel.PULL(sensorNames, startTime, endTime, "points", 1000)</code><span class="text-gray-600">pull N points</span></li>
-                <li class="flex items-start gap-2"><code class="bg-gray-100 rounded px-1.5 py-0.5">=SqExcel.PULL(sensorNames, startTime, endTime, "grid", "15min")</code><span class="text-gray-600">pull on 15‑minute intervals</span></li>
-                <li class="flex items-start gap-2"><code class="bg-gray-100 rounded px-1.5 py-0.5">=SqExcel.CURRENT(sensorName)</code><span class="text-gray-600">current value</span></li>
-                <li class="flex items-start gap-2"><code class="bg-gray-100 rounded px-1.5 py-0.5">=SqExcel.AVERAGE(sensorName, startTime, endTime)</code><span class="text-gray-600">average over range</span></li>
+            <ul class="text-sm space-y-2">
+                <li>
+                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block w-fit">=SqExcel.SEARCH_SENSORS(A1:C1)</code>
+                    <span class="text-gray-600">verify sensors; see unit/description</span>
+                </li>
+                <li>
+                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block w-fit">=SqExcel.PULL(sensorNames, startTime, endTime, "points", 1000)</code>
+                    <span class="text-gray-600">pull N points</span>
+                </li>
+                <li>
+                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block w-fit">=SqExcel.PULL(sensorNames, startTime, endTime, "grid", "15min")</code>
+                    <span class="text-gray-600">pull on 15‑minute intervals</span>
+                </li>
+                <li>
+                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block w-fit">=SqExcel.CURRENT(sensorName)</code>
+                    <span class="text-gray-600">current value</span>
+                </li>
+                <li>
+                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block w-fit">=SqExcel.AVERAGE(sensorName, startTime, endTime)</code>
+                    <span class="text-gray-600">average over range</span>
+                </li>
             </ul>
 
             <p class="text-xs text-gray-500 mt-3">Tip: Timestamp column returns Excel serials. Format as Date to see readable times.</p>
@@ -91,34 +106,38 @@
             <div class="grid grid-cols-1 gap-3">
                 <label class="block">
                     <span class="text-sm text-gray-600">Sensor Names (comma-separated)</span>
-                    <input type="text" id="sensor-names" placeholder="Sensor1, Sensor2, Sensor3" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                    <input type="text" id="sensor-names" placeholder="Sensor1, Sensor2, Sensor3" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                 </label>
                 <label class="block">
                     <span class="text-sm text-gray-600">Start Time</span>
-                    <input type="datetime-local" id="start-time" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                    <input type="datetime-local" id="start-time" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                 </label>
                 <label class="block">
                     <span class="text-sm text-gray-600">End Time</span>
-                    <input type="datetime-local" id="end-time" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                    <input type="datetime-local" id="end-time" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                 </label>
                 <label class="block">
                     <span class="text-sm text-gray-600">Data Mode</span>
-                    <select id="data-mode" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                    <select id="data-mode" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                         <option value="points">Points (number of data points)</option>
                         <option value="grid">Grid (time interval)</option>
                     </select>
                 </label>
                 <label class="block">
                     <span class="text-sm text-gray-600" id="mode-value-label">Number of Points</span>
-                    <input type="number" id="mode-value" placeholder="1000" value="1000" class="mt-1 w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                    <input type="number" id="mode-value" placeholder="1000" value="1000" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                 </label>
                 <div class="flex items-center gap-2 pt-1">
-                    <button id="search-sensors" class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Search Sensors</button>
-                    <button id="pull-data" class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Pull Data</button>
+                    <button id="search-sensors" class="px-3 py-1.5 text-sm text-white rounded-md hover:opacity-95" style="background-color: #55924C;">Search Sensors</button>
+                    <button id="pull-data" class="px-3 py-1.5 text-sm text-white rounded-md hover:opacity-95" style="background-color: #55924C;">Pull Data</button>
                 </div>
                 <div id="search-results" class="text-sm"></div>
                 <div id="data-results" class="text-sm"></div>
             </div>
+        </div>
+
+        <div class="w-full flex justify-end">
+            <a href="mailto:austin@radialflow.net" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-gray-200 bg-white shadow-sm hover:bg-gray-50">Contact Us</a>
         </div>
 
         <p class="text-xs text-gray-500"><label id="item-subject"></label></p>
