@@ -142,6 +142,17 @@ function convertToExcelSerialNumber(timestamp: any): number {
     // Normalize the input into a Date representing the intended moment-in-time
     let date: Date | null = null;
 
+    // If it's already an Excel serial (number or numeric string), just return it directly
+    if (typeof timestamp === 'number' && timestamp > 0 && timestamp < 100000) {
+      return timestamp;
+    }
+    if (typeof timestamp === 'string' && /^\d+(?:\.\d+)?$/.test(timestamp.trim())) {
+      const asNum = parseFloat(timestamp.trim());
+      if (!isNaN(asNum) && asNum > 0 && asNum < 100000) {
+        return asNum;
+      }
+    }
+
     if (timestamp instanceof Date) {
       date = new Date(timestamp.getTime());
     } else if (typeof timestamp === 'number') {
@@ -155,13 +166,8 @@ function convertToExcelSerialNumber(timestamp: any): number {
         // treat as Unix seconds
         date = new Date(timestamp * 1000);
       } else if (timestamp > 0 && timestamp < 100000) {
-        // treat as Excel serial number directly, convert to JS Date first
-        const excelSerial = timestamp;
-        // Excel epoch 1899-12-30, and Excel has 1900-leap-year bug; our serials assume the typical Excel system
-        const daysSinceUnixEpoch = excelSerial - 25569; // days difference to 1970-01-01
-        const ms = Math.round(daysSinceUnixEpoch * 86400000);
-        // Create Date at UTC time corresponding to that serial's wall-clock
-        date = new Date(ms);
+        // If a caller sent a number that is clearly an Excel serial, return it directly
+        return timestamp;
       } else {
         // Fallback: treat as ms
         date = new Date(timestamp);
@@ -212,10 +218,14 @@ function parseDate(dateString: string): Date | null {
   if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
     const serialNumber = parseFloat(trimmed);
     if (!isNaN(serialNumber) && serialNumber > 0 && serialNumber < 100000) {
-      // Convert Excel serial to JS Date via UTC math to avoid local drift
+      // Convert Excel serial to a JS Date that renders as LOCAL midnight.
+      // 1) Compute UTC midnight for the serial
       const daysSinceUnixEpoch = serialNumber - 25569;
       const msUtc = Math.round(daysSinceUnixEpoch * 86400000);
-      return new Date(msUtc);
+      // 2) Apply the timezone offset at that point in time so that toString() shows local midnight
+      const tzAtDateMin = new Date(msUtc).getTimezoneOffset();
+      const msLocal = msUtc + tzAtDateMin * 60000;
+      return new Date(msLocal);
     }
   }
 
@@ -497,12 +507,24 @@ export function DEBUG(input: string): string[][] {
     rows.push(["Timezone name", tzName]);
     rows.push(["Timezone offset (min)", String(tzOffsetMin)]);
 
-    // Parse using native Date first
-    const nativeDate = new Date(input as any);
-    rows.push(["Native parse valid", String(!isNaN(nativeDate.getTime()))]);
-    rows.push(["Native local", isNaN(nativeDate.getTime()) ? "Invalid" : nativeDate.toString()]);
-    rows.push(["Native UTC ISO", isNaN(nativeDate.getTime()) ? "Invalid" : nativeDate.toISOString()]);
-    rows.push(["Native getTime()", isNaN(nativeDate.getTime()) ? "Invalid" : String(nativeDate.getTime())]);
+    // Parse using native Date first, but skip for numeric Excel serial strings to avoid misleading year=45870
+    let nativeDate: Date | null = null;
+    const isNumericString = typeof input === 'string' && /^\d+(?:\.\d+)?$/.test(input.trim());
+    const numericVal = isNumericString ? parseFloat(input.trim()) : NaN;
+    const looksLikeExcelSerial = isNumericString && !isNaN(numericVal) && numericVal > 0 && numericVal < 100000;
+    if (!looksLikeExcelSerial) {
+      const nd = new Date(input as any);
+      nativeDate = isNaN(nd.getTime()) ? null : nd;
+      rows.push(["Native parse valid", String(!!nativeDate)]);
+      rows.push(["Native local", !nativeDate ? "Invalid" : nativeDate.toString()]);
+      rows.push(["Native UTC ISO", !nativeDate ? "Invalid" : nativeDate.toISOString()]);
+      rows.push(["Native getTime()", !nativeDate ? "Invalid" : String(nativeDate.getTime())]);
+    } else {
+      rows.push(["Native parse valid", "Skipped (numeric Excel serial)"]);
+      rows.push(["Native local", "Skipped (numeric Excel serial)"]); 
+      rows.push(["Native UTC ISO", "Skipped (numeric Excel serial)"]); 
+      rows.push(["Native getTime()", "Skipped (numeric Excel serial)"]); 
+    }
 
     // Parse using custom parser
     const customDate = parseDate(String(input));
@@ -520,7 +542,8 @@ export function DEBUG(input: string): string[][] {
       rows.push(["Serial (convertToExcelSerialNumber(customDate))", String(serialFromCustom)]);
 
       // Show effect of subtracting vs adding the timezone offset (in ms)
-      const offsetMs = tzOffsetMin * 60 * 1000;
+      const tzAtCustomMin = customDate.getTimezoneOffset();
+      const offsetMs = tzAtCustomMin * 60 * 1000;
       const minusOffset = new Date(customDate.getTime() - offsetMs);
       const plusOffset = new Date(customDate.getTime() + offsetMs);
       rows.push(["Custom minus offset local", minusOffset.toString()]);
@@ -529,6 +552,11 @@ export function DEBUG(input: string): string[][] {
       rows.push(["Custom plus offset UTC ISO", plusOffset.toISOString()]);
       rows.push(["Serial (custom minus offset)", String(convertToExcelSerialNumber(minusOffset))]);
       rows.push(["Serial (custom plus offset)", String(convertToExcelSerialNumber(plusOffset))]);
+
+      // Also include a line that shows the Excel local midnight interpretation for numeric serials
+      if (looksLikeExcelSerial) {
+        rows.push(["Excel local midnight", customDate.toString()]);
+      }
     }
 
     return [["Key", "Value"], ...rows];
