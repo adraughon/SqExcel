@@ -60,10 +60,19 @@
         <!-- Getting Started (compact) -->
         <div id="diagnostics" class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
             <h3 class="text-lg font-medium mb-2">Getting Started</h3>
-            <ol class="list-decimal list-inside text-sm space-y-1 mb-3">
-                <li><span class="font-medium">Create Access Key:</span> Seeq → Profile → Access Keys → Create.</li>
-                <li><span class="font-medium">Authenticate:</span> Enter URL, Key, Password → Authenticate.</li>
-                <li><span class="font-medium">Use in Excel:</span> Paste formulas below.</li>
+            <ol class="list-decimal list-inside text-sm space-y-2 mb-3">
+                <li>
+                    <span class="font-medium">Create Access Key:</span>
+                    <div>Seeq → Profile → Access Keys → Create.</div>
+                </li>
+                <li>
+                    <span class="font-medium">Authenticate:</span>
+                    <div>Enter URL, Key, Password → Authenticate.</div>
+                </li>
+                <li>
+                    <span class="font-medium">Use in Excel:</span>
+                    <div>Paste formulas below.</div>
+                </li>
             </ol>
 
             <h4 class="text-sm font-semibold mb-2">Quick Functions</h4>
@@ -91,13 +100,6 @@
             </ul>
 
             <p class="text-xs text-gray-500 mt-3">Tip: Timestamp column returns Excel serials. Format as Date to see readable times.</p>
-
-            <h4 class="text-sm font-semibold mt-3 mb-1">Troubleshooting</h4>
-            <ul class="text-sm text-gray-700 space-y-1">
-                <li><span class="font-medium">#NAME?</span> Ensure add-in is loaded.</li>
-                <li><span class="font-medium">Auth errors:</span> Verify URL/Key/Password.</li>
-                <li><span class="font-medium">No data:</span> Check sensor names and time range.</li>
-            </ul>
         </div>
 
         <!-- Search and Data Sections (hidden by default; IDs preserved) -->
@@ -134,10 +136,6 @@
                 <div id="search-results" class="text-sm"></div>
                 <div id="data-results" class="text-sm"></div>
             </div>
-        </div>
-
-        <div class="w-full flex justify-end">
-            <a href="mailto:austin@radialflow.net" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-gray-200 bg-white shadow-sm hover:bg-gray-50">Contact Us</a>
         </div>
 
         <p class="text-xs text-gray-500"><label id="item-subject"></label></p>
