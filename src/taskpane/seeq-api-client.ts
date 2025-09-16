@@ -97,38 +97,8 @@ export class SeeqAPIClient {
   private adjustTimestampsForTimezone(data: any[]): any[] {
     if (!data || !Array.isArray(data)) return data;
     
-    // Add debug information as the first row
-    const timezoneOffset = new Date().getTimezoneOffset();
-    const now = new Date();
-    const debugRow = {
-      'Timestamp': 'DEBUG_ROW',
-      'DEBUG_TIMEZONE_OFFSET_MINUTES': timezoneOffset,
-      'DEBUG_CURRENT_TIME_UTC': now.toISOString(),
-      'DEBUG_CURRENT_TIME_LOCAL': now.toString(),
-      'DEBUG_TIMEZONE_NAME': Intl.DateTimeFormat().resolvedOptions().timeZone
-    };
-    
-    // Process the first data row for debugging
-    if (data.length > 0) {
-      const firstRow = data[0];
-      if (firstRow.Timestamp) {
-        const originalTimestamp = new Date(firstRow.Timestamp);
-        debugRow['DEBUG_ORIGINAL_TIMESTAMP'] = firstRow.Timestamp;
-        debugRow['DEBUG_ORIGINAL_PARSED_UTC'] = originalTimestamp.toISOString();
-        debugRow['DEBUG_ORIGINAL_PARSED_LOCAL'] = originalTimestamp.toString();
-        debugRow['DEBUG_ORIGINAL_GETTIME'] = originalTimestamp.getTime();
-      }
-      if (firstRow.index) {
-        const originalIndex = new Date(firstRow.index);
-        debugRow['DEBUG_ORIGINAL_INDEX'] = firstRow.index;
-        debugRow['DEBUG_INDEX_PARSED_UTC'] = originalIndex.toISOString();
-        debugRow['DEBUG_INDEX_PARSED_LOCAL'] = originalIndex.toString();
-        debugRow['DEBUG_INDEX_GETTIME'] = originalIndex.getTime();
-      }
-    }
-    
-    // Return debug row first, then original data
-    return [debugRow, ...data];
+    // Previously injected a debug row; now just return data unchanged
+    return data;
   }
 
   /**
@@ -399,8 +369,7 @@ export class SeeqAPIClient {
         try {
           await this.storeCredentialsForExcel();
         } catch (storeError) {
-          console.warn('Failed to store credentials for Excel functions:', storeError);
-          // Don't fail the authentication if credential storage fails
+          // Swallow storage errors; do not spam console in production
         }
         
         return {
@@ -729,7 +698,7 @@ export class SeeqAPIClient {
           }
         });
       } catch (clearError) {
-        console.warn('Failed to clear credentials from backend:', clearError);
+        // Ignore cleanup errors silently
         // Don't fail logout if credential clearing fails
       }
     } catch (error: any) {

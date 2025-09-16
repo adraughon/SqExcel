@@ -56,22 +56,6 @@
                 "dimensionality": "matrix",
                 "type": "string"
             }
-        },
-        {
-            "description": "Timestamp diagnostics helper exposed to Excel for debugging timezone issues.\nPlace =DEBUG(A1) or =DEBUG(\"8/1/2025 00:00\") in a cell to see details.",
-            "id": "DEBUG",
-            "name": "DEBUG",
-            "parameters": [
-                {
-                    "description": "Timestamp string or serial to diagnose",
-                    "name": "input",
-                    "type": "string"
-                }
-            ],
-            "result": {
-                "dimensionality": "matrix",
-                "type": "string"
-            }
         }
     ]
 }
