@@ -170,18 +170,11 @@ function convertToExcelSerialNumber(timestamp: any): number {
     }
     
     // Convert to Excel serial number
-    // Use UTC time to avoid timezone issues
-    const utcTime = Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      date.getUTCHours(),
-      date.getUTCMinutes(),
-      date.getUTCSeconds()
-    );
-    
-    const excelSerial = utcTime / (1000 * 60 * 60 * 24) + 25569;
-    // 25569 is the Excel serial number for 1970-01-01 (Unix epoch)
+    // Goal: preserve LOCAL wall-clock time when shown in Excel (Excel is timezone-agnostic)
+    // Strategy: subtract the local timezone offset so that local midnight stays midnight in serial fraction
+    const tzOffsetMs = date.getTimezoneOffset() * 60 * 1000; // minutes -> ms
+    const localWallClockMs = date.getTime() - tzOffsetMs;
+    const excelSerial = localWallClockMs / (1000 * 60 * 60 * 24) + 25569; // 25569 = days from 1899-12-30 to 1970-01-01
     
     // For debug calls, we'll return the serial number but log the debug info
     if (typeof timestamp === 'string' && timestamp.includes('DEBUG')) {
