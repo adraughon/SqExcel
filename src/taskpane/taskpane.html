@@ -22,16 +22,19 @@
 <body class="bg-gray-50 text-gray-800">
     <header class="flex items-center gap-3 p-4 border-b border-gray-200 bg-white">
         <img width="48" height="48" src="../../assets/logo-filled.png" alt="SqExcel" title="SqExcel" class="rounded" />
-        <h1 class="text-xl font-semibold">SqExcel</h1>
+        <div>
+            <h1 class="text-xl font-semibold leading-tight">SqExcel</h1>
+            <p class="text-sm text-gray-500">Excel add-in for fast, reliable Seeq data access</p>
+        </div>
     </header>
 
     <section id="sideload-msg" class="p-4">
         <h2 class="text-base">Please <a class="text-indigo-600 underline" target="_blank" href="https://learn.microsoft.com/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing">sideload</a> your add-in to see app body.</h2>
     </section>
 
-    <main id="app-body" style="display: none;" class="p-4 space-y-4">
+    <main id="app-body" style="display: none;" class="p-4 flex flex-col gap-4 w-full">
         <!-- Auth Card -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
             <h3 class="text-lg font-medium mb-3">Seeq Authentication</h3>
             <div class="grid grid-cols-1 gap-3">
                 <label class="block">
@@ -55,7 +58,7 @@
         </div>
 
         <!-- Getting Started (compact) -->
-        <div id="diagnostics" class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div id="diagnostics" class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
             <h3 class="text-lg font-medium mb-2">Getting Started</h3>
             <ol class="list-decimal list-inside text-sm space-y-1 mb-3">
                 <li><span class="font-medium">Create Access Key:</span> Seeq → Profile → Access Keys → Create.</li>
@@ -83,7 +86,7 @@
         </div>
 
         <!-- Search and Data Sections (hidden by default; IDs preserved) -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm" style="display: none;" >
+        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full" style="display: none;" >
             <h3 class="text-lg font-medium mb-3">Sensor Search</h3>
             <div class="grid grid-cols-1 gap-3">
                 <label class="block">
