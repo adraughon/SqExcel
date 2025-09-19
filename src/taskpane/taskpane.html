@@ -55,7 +55,7 @@
                         <input type="password" id="seeq-password" placeholder="Your Seeq password" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
                     </label>
                     <div class="flex items-center gap-2 pt-1 flex-wrap">
-                        <button id="authenticate" class="px-3 py-1.5 text-sm text-white rounded-md hover:opacity-95" style="background-color: #55924C;">Authenticate</button>
+                        <button id="authenticate" class="px-3 py-1.5 text-sm text-white rounded-md hover:opacity-95" style="background-color: #117D43;">Authenticate</button>
                         <button id="logout" class="px-3 py-1.5 text-sm bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200" style="display: none;">Logout</button>
                     </div>
                 </div>
@@ -114,8 +114,7 @@
                     <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.PULL(sensorNames, startDatetime, endDatetime, [mode], [modeValue])</code>
                     
                     <div class="mb-4">
-                        <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
-                        <ul class="text-xs text-gray-600 space-y-1 ml-4">
+                        <ul class="text-xs text-gray-600 space-y-1">
                             <li><strong>sensorNames<span class="text-red-500">*</span>:</strong> Range containing sensor names</li>
                             <li><strong>startDatetime<span class="text-red-500">*</span>:</strong> Start time as text</li>
                             <li><strong>endDatetime<span class="text-red-500">*</span>:</strong> End time as text</li>
@@ -133,19 +132,24 @@
                     </div>
                     
                     <p class="text-xs text-gray-600"><strong>Returns:</strong> Time series data with timestamps and sensor values</p>
+                    
+                    <!-- Tip Card -->
+                    <div class="bg-blue-50 rounded-lg p-3 border border-blue-200 mt-4">
+                        <h5 class="text-sm font-semibold text-blue-800 mb-2">💡 Tip</h5>
+                        <p class="text-xs text-blue-700">The function returns dates as Excel serial datetimes (e.g., 45930). To display them properly, select the date columns, go to Format → More Number Formats → Date, and select a date format.</p>
+                    </div>
                 </div>
 
                 <!-- CURRENT Function -->
                 <div class="mb-8">
-                    <div class="bg-blue-100 text-blue-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
+                    <div class="bg-purple-100 text-purple-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
                         CURRENT
                     </div>
                     <p class="text-sm text-gray-600 mb-2 font-medium">Gets the current value of a single sensor</p>
                     <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.CURRENT(sensorName)</code>
                     
                     <div class="mb-4">
-                        <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
-                        <ul class="text-xs text-gray-600 space-y-1 ml-4">
+                        <ul class="text-xs text-gray-600 space-y-1">
                             <li><strong>sensorName<span class="text-red-500">*</span>:</strong> Single sensor name as text</li>
                         </ul>
                     </div>
@@ -160,15 +164,14 @@
 
                 <!-- AVERAGE Function -->
                 <div class="mb-8">
-                    <div class="bg-purple-100 text-purple-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
+                    <div class="bg-blue-100 text-blue-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
                         AVERAGE
                     </div>
                     <p class="text-sm text-gray-600 mb-2 font-medium">Calculates average value over a time range</p>
                     <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.AVERAGE(sensorName, startDatetime, endDatetime)</code>
                     
                     <div class="mb-4">
-                        <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
-                        <ul class="text-xs text-gray-600 space-y-1 ml-4">
+                        <ul class="text-xs text-gray-600 space-y-1">
                             <li><strong>sensorName<span class="text-red-500">*</span>:</strong> Single sensor name as text</li>
                             <li><strong>startDatetime<span class="text-red-500">*</span>:</strong> Start time as text</li>
                             <li><strong>endDatetime<span class="text-red-500">*</span>:</strong> End time as text</li>
@@ -192,8 +195,7 @@
                     <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.CREATE_PLOT_CODE(sensorNames, startDatetime, endDatetime, [points], [height], [aspectRatio], [showLine], [showPoints], [opacity], [colors], [style], [labels], [yAxisBehavior])</code>
                     
                     <div class="mb-4">
-                        <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
-                        <ul class="text-xs text-gray-600 space-y-1 ml-4">
+                        <ul class="text-xs text-gray-600 space-y-1">
                             <li><strong>sensorNames<span class="text-red-500">*</span>:</strong> Range with sensor names</li>
                             <li><strong>startDatetime<span class="text-red-500">*</span>:</strong> Start time as text</li>
                             <li><strong>endDatetime<span class="text-red-500">*</span>:</strong> End time as text</li>
@@ -228,8 +230,7 @@
                     
                     <!-- Python Execution Guide -->
                     <div class="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                        <h5 class="text-sm font-semibold text-blue-800 mb-2 flex items-center">
-                            <span class="mr-2">🐍</span>
+                        <h5 class="text-sm font-semibold text-blue-800 mb-2">
                             How to Execute Python Plot Code
                         </h5>
                         <ol class="space-y-1 text-xs text-blue-700">
@@ -238,9 +239,9 @@
                             <li><strong>3.</strong> Type <code class="bg-gray-100 px-1 rounded font-mono">exec(</code>,  and click the cell with plot code, then <code class="bg-gray-100 px-1 rounded font-mono">)</code></li>
                             <li><strong>4.</strong> Press Ctrl + Enter to execute the cell</li>
                         </ol>
-                        <div class="mt-2 p-2 bg-blue-100 rounded text-xs">
-                            <strong class="text-blue-800">💡 Tip:</strong> <span class="text-blue-700">If Excel shows a message like <code class="bg-gray-100 px-1 rounded font-mono">PY[Image]</code> instead of the plot, click the icon next to "PY" in the formula bar and change from "Python Object" to "Excel Value"</span>
-                        </div>
+                        <p class="mt-2 text-xs text-blue-700">
+                            <strong class="text-blue-800">💡 Tip:</strong> If Excel shows a message like <code class="bg-gray-100 px-1 rounded font-mono">PY[Image]</code> instead of the plot, click the icon next to "PY" in the formula bar and change from "Python Object" to "Excel Value"
+                        </p>
                     </div>
                     
                     <p class="text-xs text-gray-600 mt-4"><strong>Returns:</strong> Complete Python matplotlib code for creating plots</p>
@@ -251,7 +252,7 @@
             <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
                 <h3 class="text-lg font-medium mb-3 text-gray-800">Need Help?</h3>
                 <div class="text-sm text-gray-600 text-center">
-                    Contact us at <a href="mailto:austin@radialflow.net" class="text-indigo-600 underline font-medium">austin@radialflow.net</a>
+Contact us at <a href="mailto:austin@radialflow.net" class="text-indigo-600 underline font-medium">austin@radialflow.net</a>
                 </div>
             </div>
         </div>
