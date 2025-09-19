@@ -258,20 +258,14 @@ function parseDate(dateString: string): Date | null {
 
 /**
  * Pulls time series data from Seeq sensors over a specified time range.
- * This is an array function that should be called on a range that can accommodate the output.
  * 
  * @customfunction PULL
- * @param sensorNames Range containing sensor names (e.g., B1:D1)
- * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00" or "8/1/2025 0:00")
- * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59" or "8/3/2025 0:00")
- * @param mode Data retrieval mode: "grid" for time-based intervals or "points" for number of points - defaults to "points"
- * @param modeValue Grid interval (e.g., "15min", "1h", "1d") when mode="grid" OR number of points when mode="points" - defaults to 1000
- * @returns Array containing timestamp column (as Excel serial numbers) and sensor data columns
- * 
- * TIMEZONE BEHAVIOR:
- * - Input dates without timezone info are treated as local timezone
- * - Returned data timestamps are in the same timezone as the input (local timezone)
- * - This matches user expectations for natural date/time input
+ * @param {string[][]} sensorNames Sensor names range
+ * @param {string} startDatetime Start time
+ * @param {string} endDatetime End time
+ * @param {string} [mode] "grid" or "points"
+ * @param {string|number} [modeValue] Grid interval or point count
+ * @returns {string[][]} Timestamp and sensor data
  */
 export function PULL(
   sensorNames: string[][],
@@ -425,9 +419,14 @@ export function PULL(
 /**
  * Searches for sensors in Seeq without pulling data.
  * 
+ * NOTE: This function is DISABLED from Excel visibility because it provides poor UX.
+ * Users need to know sensor names to search anyway, so it's not helpful for end users.
+ * We keep this function in the codebase because it's used internally by other functions
+ * to resolve sensor names to Seeq IDs when pulling data.
+ * 
  * @customfunction SEARCH_SENSORS
- * @param sensorNames Range containing sensor names (e.g., B1:D1)
- * @returns Array containing search results for each sensor
+ * @param {string[][]} sensorNames Sensor names range
+ * @returns {string[][]} Search results
  */
 export function SEARCH_SENSORS(sensorNames: string[][]): string[][] {
   try {
@@ -493,12 +492,11 @@ export function SEARCH_SENSORS(sensorNames: string[][]): string[][] {
 }
 
 /**
- * Gets the current value of a sensor at the present time.
- * Returns a single-cell scalar value.
+ * Gets the current value of a sensor.
  * 
  * @customfunction CURRENT
- * @param sensorName Name of the sensor (e.g., "Area/Tag")
- * @returns Current value as a scalar, or an error string
+ * @param {string} sensorName Sensor name
+ * @returns {any} Current value
  */
 export function CURRENT(sensorName: string): any {
   try {
@@ -558,14 +556,13 @@ export function CURRENT(sensorName: string): any {
 }
 
 /**
- * Computes the average value of a sensor over a time range using a 100-point grid.
- * Returns a single-cell scalar value.
+ * Computes the average value of a sensor over a time range.
  * 
  * @customfunction AVERAGE
- * @param sensorName Name of the sensor (e.g., "Area/Tag")
- * @param startDatetime Start time (e.g., "2024-01-01T00:00:00" or "8/1/2025 0:00")
- * @param endDatetime End time (e.g., "2024-01-31T23:59:59" or "8/1/2025 1:40")
- * @returns Average value as a scalar, or an error string
+ * @param {string} sensorName Sensor name
+ * @param {string} startDatetime Start time
+ * @param {string} endDatetime End time
+ * @returns {any} Average value
  */
 export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: string): any {
   try {
@@ -687,23 +684,23 @@ function getColorHex(colorInput: string): string {
 }
 
 /**
- * Creates Python plotting code with embedded sensor data for visualization.
- * This function fetches sensor data and returns complete Python code as text.
+ * Creates Python plotting code with embedded sensor data.
  * 
  * @customfunction CREATE_PLOT_CODE
- * @param sensorNames Range containing sensor names (e.g., B1:D1)
- * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00" or "8/1/2025 0:00")
- * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59" or "8/3/2025 0:00")
- * @param points Number of data points to retrieve (defaults to 100)
- * @param height Plot height in inches (defaults to 0.3)
- * @param aspectRatio Width to height ratio (defaults to 5)
- * @param showLine Whether to show connecting lines (defaults to true)
- * @param showPoints Whether to show data points (defaults to true)
- * @param opacity Point and line opacity 0-1 (defaults to 0.9)
- * @param color Plot color - use color names like 'green', 'blue', 'red' or hex codes (defaults to 'green')
- * @param style Plot style: 'normal', 'minimal', or 'sparkline' (defaults to 'sparkline')
- * @param label Y-axis label (defaults to 'Value')
- * @returns Python code as text string
+ * @param {string[][]} sensorNames Sensor names range
+ * @param {string} startDatetime Start time
+ * @param {string} endDatetime End time
+ * @param {number} [points] Data points (default: 100)
+ * @param {number} [height] Plot height (default: 0.3)
+ * @param {number} [aspectRatio] Width/height ratio (default: 5)
+ * @param {any} [showLine] Show lines (default: true)
+ * @param {any} [showPoints] Show points (default: true)
+ * @param {number} [opacity] Opacity 0-1 (default: 0.9)
+ * @param {string} [colors] Colors comma-separated (default: green,red,blue)
+ * @param {string} [style] Style: normal/minimal/sparkline (default: sparkline)
+ * @param {string} [labels] Y-axis labels comma-separated (default: Sensor 1,Sensor 2)
+ * @param {string} [yAxisBehavior] Y-axis: share/split (default: share)
+ * @returns {string} Python code
  */
 export function CREATE_PLOT_CODE(
   sensorNames: string[][],
@@ -715,9 +712,10 @@ export function CREATE_PLOT_CODE(
   showLine?: any,
   showPoints?: any,
   opacity?: number,
-  color?: string,
+  colors?: string,
   style?: string,
-  label?: string
+  labels?: string,
+  yAxisBehavior?: string
 ): string {
   try {
     // Set default values for optional parameters
@@ -729,9 +727,14 @@ export function CREATE_PLOT_CODE(
     const actualShowLine = (showLine === undefined || showLine === null || showLine === "" || showLine === 0) ? true : Boolean(showLine);
     const actualShowPoints = (showPoints === undefined || showPoints === null || showPoints === "" || showPoints === 0) ? true : Boolean(showPoints);
     const actualOpacity = opacity || 0.9;
-    const actualColor = getColorHex(color || 'green');
     const actualStyle = style || 'sparkline';
-    const actualLabel = label || 'Value';
+    const actualYAxisBehavior = yAxisBehavior || 'share';
+    
+    // Parse colors (comma-separated or single color)
+    const colorList = colors ? colors.split(',').map(c => getColorHex(c.trim())) : ['#40C9A2', '#E74C3C', '#3498DB', '#9B59B6', '#F39C12'];
+    
+    // Parse labels (comma-separated or single label)  
+    const labelList = labels ? labels.split(',').map(l => l.trim()) : null;
     
     // Flatten the sensor names array and filter out empty cells
     const sensorNamesList = sensorNames
@@ -741,9 +744,6 @@ export function CREATE_PLOT_CODE(
     if (sensorNamesList.length === 0) {
       return "Error: No sensor names provided";
     }
-
-    // For now, we'll use the first sensor name for single sensor plotting
-    const sensorName = sensorNamesList[0];
     
     // Validate datetime format
     const startDate = parseDate(startDatetime);
@@ -784,9 +784,9 @@ export function CREATE_PLOT_CODE(
       }
     })();
     
-    // Call backend server to get sensor data
+    // Call backend server to get sensor data for all sensors
     const result = callBackendSync('/api/seeq/sensor-data', {
-      sensorNames: [sensorName],
+      sensorNames: sensorNamesList,
       startDatetime,
       endDatetime,
       grid,
@@ -816,19 +816,23 @@ export function CREATE_PLOT_CODE(
       return errorMsg;
     }
 
-    // Extract timestamps and sensor values
+    // Extract timestamps and sensor values for all sensors
     const timestamps: string[] = [];
-    const sensorValues: (number | string)[] = [];
-    const valueColumn = result.data_columns?.[0];
+    const sensorData: (number | string)[][] = [];
+    const valueColumns = result.data_columns || [];
     
-    if (!valueColumn) {
+    if (valueColumns.length === 0) {
       return "Error: No data columns returned";
+    }
+
+    // Initialize sensor data arrays
+    for (let i = 0; i < valueColumns.length; i++) {
+      sensorData.push([]);
     }
 
     result.data.forEach((row: any) => {
       const timestamp = row.Timestamp || row.index;
-      const value = row[valueColumn];
-      if (timestamp !== undefined && value !== undefined) {
+      if (timestamp !== undefined) {
         // Convert timestamp to ISO string for Python datetime parsing
         let timestampStr: string;
         if (timestamp instanceof Date) {
@@ -840,8 +844,17 @@ export function CREATE_PLOT_CODE(
         } else {
           timestampStr = String(timestamp);
         }
-        timestamps.push(timestampStr);
-        sensorValues.push(value);
+        
+        // Only add timestamp once per row
+        if (timestamps.length === 0 || timestamps[timestamps.length - 1] !== timestampStr) {
+          timestamps.push(timestampStr);
+          
+          // Add sensor values for this timestamp
+          valueColumns.forEach((column: string, index: number) => {
+            const value = row[column];
+            sensorData[index].push(value !== undefined ? value : null);
+          });
+        }
       }
     });
 
@@ -852,15 +865,17 @@ export function CREATE_PLOT_CODE(
     // Generate Python code with embedded data
     const pythonCode = generatePythonPlotCode(
       timestamps,
-      sensorValues,
+      sensorData,
+      sensorNamesList,
+      colorList,
+      labelList,
       actualHeight,
       actualAspectRatio,
       actualShowLine,
       actualShowPoints,
       actualOpacity,
-      actualColor,
       actualStyle,
-      actualLabel
+      actualYAxisBehavior
     );
 
     return pythonCode;
@@ -875,36 +890,218 @@ export function CREATE_PLOT_CODE(
  */
 function generatePythonPlotCode(
   timestamps: string[],
-  sensorValues: (number | string)[],
+  sensorData: (number | string)[][],
+  sensorNames: string[],
+  colors: string[],
+  labels: string[] | null,
   height: number,
   aspectRatio: number,
   showLine: boolean,
   showPoints: boolean,
   opacity: number,
-  color: string,
   style: string,
-  label: string
+  yAxisBehavior: string
 ): string {
   // Convert arrays to Python list format
   const timestampsPython = timestamps.map(t => `'${t}'`).join(', ');
-  const valuesPython = sensorValues.map(v => 
-    typeof v === 'number' ? v.toString() : `'${v}'`
+  
+  // Convert sensor data arrays to Python format
+  const sensorDataPython = sensorData.map(data => 
+    '[' + data.map(v => typeof v === 'number' ? v.toString() : (v === null ? 'None' : `'${v}'`)).join(', ') + ']'
   ).join(', ');
+  
+  // Convert colors and labels to Python format
+  const colorsPython = colors.map(c => `'${c}'`).join(', ');
+  const labelsPython = labels ? labels.map(l => `'${l}'`).join(', ') : 'None';
 
   return `import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
 
-# Data from Seeq sensor
+def plot_sensor_data_func(timestamps, sensor_data, labels=None, colors=None, 
+                         height=0.3, aspect_ratio=5, show_line=True, show_points=True, 
+                         opacity=0.9, style='sparkline', y_axis_behavior='share'):
+    """
+    Plot sensor data with flexible styling and y-axis options.
+    
+    Parameters:
+    - timestamps: list of timestamp strings or datetime objects
+    - sensor_data: list of sensor values (single sensor) or list of lists (multiple sensors)
+    - labels: list of labels for each sensor (default: 'Sensor 1', 'Sensor 2', etc.)
+    - colors: list of colors for each sensor (default: predefined colors)
+    - height: figure height
+    - aspect_ratio: width/height ratio
+    - show_line: whether to show connecting lines
+    - show_points: whether to show data points
+    - opacity: opacity of the plot elements
+    - style: 'normal', 'minimal', or 'sparkline'
+    - y_axis_behavior: 'share' or 'split' (only relevant for multiple sensors)
+    """
+    
+    # Hidden parameters for fine-tuning
+    dpi = 150  # Image quality (dots per inch)
+    base_markersize = 2.2
+    base_linewidth = 2
+    max_marker_size = 4
+    opacity_ratio = 0.7
+    
+    # Convert timestamps to datetime objects if they're strings
+    if isinstance(timestamps[0], str):
+        timestamps = [datetime.fromisoformat(ts.replace('Z', '+00:00')) for ts in timestamps]
+    
+    # Normalize sensor_data to always be a list of lists
+    if not isinstance(sensor_data[0], (list, tuple)):
+        sensor_data = [sensor_data]  # Single sensor case
+    
+    num_sensors = len(sensor_data)
+    
+    # Set default labels and colors
+    if labels is None:
+        if num_sensors == 1:
+            labels = ['Value']
+        else:
+            labels = [f'Sensor {i+1}' for i in range(num_sensors)]
+    
+    if colors is None:
+        default_colors = ['#40C9A2', '#E74C3C', '#3498DB', '#9B59B6', '#F39C12']
+        colors = default_colors[:num_sensors]
+    
+    # Create DataFrame
+    df_data = {'timestamp': timestamps}
+    for i, data in enumerate(sensor_data):
+        df_data[f'sensor_{i}'] = data
+    df = pd.DataFrame(df_data)
+    
+    # Calculate marker size and line width based on figure height
+    scaled_markersize = min(base_markersize * height, max_marker_size)
+    scaled_linewidth = base_linewidth / base_markersize * scaled_markersize
+    
+    # Set up plot styling
+    linestyle = '-' if show_line else 'None'
+    marker = 'o' if show_points else 'None'
+    line_alpha = opacity * opacity_ratio if show_points else opacity
+    
+    def plot_single_sensor(ax, timestamps, values, color, label):
+        """Helper function to plot a single sensor's data"""
+        ax.plot(timestamps, values, linestyle=linestyle, marker=marker, 
+                linewidth=scaled_linewidth, markersize=scaled_markersize, 
+                color=color, alpha=line_alpha, markerfacecolor=color, 
+                markeredgecolor=color, markerfacecoloralt=color, label=label)
+        if show_points:
+            ax.plot(timestamps, values, linestyle='None', marker='o', 
+                    markersize=scaled_markersize, color=color, alpha=opacity)
+    
+    # Create figure with higher DPI for better quality
+    plt.figure(figsize=(height * aspect_ratio, height), facecolor='#F7F7F7', dpi=dpi)
+    
+    if style == 'sparkline':
+        # For sparkline, always overlay (ignore y_axis_behavior)
+        plt.clf()
+        plt.gcf().patch.set_visible(False)
+        ax = plt.axes([0, 0, 1, 1])
+        
+        # Plot all sensors on same axis
+        for i in range(num_sensors):
+            plot_single_sensor(ax, df['timestamp'], df[f'sensor_{i}'], 
+                             colors[i], labels[i])
+        
+        # Remove all spines and ticks
+        for k, v in ax.spines.items():
+            v.set_visible(False)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.grid(False)
+        ax.margins(0)
+        
+        # Get combined min/max values for annotations
+        all_values = []
+        for i in range(num_sensors):
+            all_values.extend(df[f'sensor_{i}'])
+        y_min = min(all_values)
+        y_max = max(all_values)
+        
+        # Add min/max as text annotations
+        ax.text(1, 0.99, f'{y_max:.1f}', transform=ax.transAxes, fontsize=8, 
+                verticalalignment='top', horizontalalignment='left', color='black')
+        ax.text(1, 0.01, f'{y_min:.1f}', transform=ax.transAxes, fontsize=8, 
+                verticalalignment='bottom', horizontalalignment='left', color='black')
+    
+    else:
+        # For normal and minimal styles
+        ax1 = plt.gca()
+        
+        if num_sensors == 1 or y_axis_behavior == 'share':
+            # Single sensor or shared y-axis: plot all on same axis
+            for i in range(num_sensors):
+                plot_single_sensor(ax1, df['timestamp'], df[f'sensor_{i}'], 
+                                 colors[i], labels[i])
+            
+            # Style the y-axis with simple concatenated labels
+            if num_sensors == 1:
+                ax1.tick_params(axis='y', colors='black')
+                ax1.set_ylabel(labels[0], color='black')
+            else:
+                ax1.tick_params(axis='y', colors='black')
+                ylabel_text = ' & '.join(labels)
+                ax1.set_ylabel(ylabel_text, color='black')
+        
+        elif num_sensors == 2 and y_axis_behavior == 'split':
+            # Two sensors with split y-axis
+            ax2 = ax1.twinx()
+            
+            # Plot sensor 1 on left axis
+            plot_single_sensor(ax1, df['timestamp'], df[f'sensor_0'], 
+                             colors[0], labels[0])
+            
+            # Plot sensor 2 on right axis
+            plot_single_sensor(ax2, df['timestamp'], df[f'sensor_1'], 
+                             colors[1], labels[1])
+            
+            # Style left y-axis to match sensor 1 color
+            ax1.tick_params(axis='y', colors=colors[0])
+            ax1.set_ylabel(labels[0], color=colors[0])
+            
+            # Style right y-axis to match sensor 2 color
+            ax2.tick_params(axis='y', colors=colors[1])
+            ax2.set_ylabel(labels[1], color=colors[1])
+            
+            # Remove grid lines from the right axis to avoid doubling
+            ax2.grid(False)
+        
+        elif num_sensors > 2 and y_axis_behavior == 'split':
+            # More than 2 sensors: fall back to shared axis
+            print("Warning: Split y-axis only supported for 2 sensors. Using shared axis.")
+            for i in range(num_sensors):
+                plot_single_sensor(ax1, df['timestamp'], df[f'sensor_{i}'], 
+                                 colors[i], labels[i])
+            ax1.tick_params(axis='y', colors='black')
+            ax1.set_ylabel(' & '.join(labels), color='black')
+        
+        # Apply style-specific formatting
+        if style == 'normal':
+            ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%y %H:%M'))
+            plt.xticks(rotation=45, ha='right', alpha=1.0)  # Force full opacity for axis labels
+            plt.yticks(alpha=1.0)  # Force full opacity for axis labels
+            # Enable grid for normal style
+            ax1.grid(True, alpha=0.3)
+            plt.tight_layout()
+        elif style == 'minimal':
+            # Only show first and last timestamp
+            ax1.set_xticks([df['timestamp'].iloc[0], df['timestamp'].iloc[-1]])
+            ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%y %H:%M'))
+            plt.xticks(rotation=0, ha='center', alpha=1.0)  # Force full opacity for axis labels
+            plt.yticks(alpha=1.0)  # Force full opacity for axis labels
+            ax1.grid(False)
+            plt.subplots_adjust(left=0.1, right=0.9, top=1.0, bottom=0.15)
+    
+    plt.show()
+
+# Data from Seeq sensors
 timestamps = [${timestampsPython}]
-sensor_values = [${valuesPython}]
-
-# Convert timestamps to datetime objects
-timestamps = [datetime.fromisoformat(ts.replace('Z', '+00:00')) for ts in timestamps]
-
-# Create DataFrame
-df = pd.DataFrame({'timestamp': timestamps, 'sensor_value': sensor_values})
+sensor_data = [${sensorDataPython}]
+labels = [${labelsPython}] if ${labelsPython} != None else None
+colors = [${colorsPython}]
 
 # Plot parameters
 height = ${height}
@@ -912,77 +1109,18 @@ aspect_ratio = ${aspectRatio}
 show_line = ${showLine ? 'True' : 'False'}
 show_points = ${showPoints ? 'True' : 'False'}
 opacity = ${opacity}
-color = '${color}'
-style = '${style}'  # 'normal', 'minimal', or 'sparkline'
-label = '${label}'
+style = '${style}'
+y_axis_behavior = '${yAxisBehavior}'
 
-# Calculate marker size and line width based on figure height
-base_markersize = 2.2
-base_linewidth = 2
-max_marker_size = 4
-opacity_ratio = 0.7  # lower means fainter lines
-
-scaled_markersize = min(base_markersize * height, max_marker_size)
-scaled_linewidth = base_linewidth / base_markersize * scaled_markersize
-
-plt.figure(figsize=(height * aspect_ratio, height), facecolor='#F7F7F7')
-linestyle = '-' if show_line else 'None'
-marker = 'o' if show_points else 'None'
-line_alpha = opacity * opacity_ratio if show_points else opacity
-plt.plot(df['timestamp'], df['sensor_value'], linestyle=linestyle, marker=marker, linewidth=scaled_linewidth, markersize=scaled_markersize, color=color, alpha=line_alpha, markerfacecolor=color, markeredgecolor=color, markerfacecoloralt=color)
-if show_points:
-    plt.plot(df['timestamp'], df['sensor_value'], linestyle='None', marker='o', markersize=scaled_markersize, color=color, alpha=opacity)
-
-if style == 'normal':
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%y %H:%M'))
-    plt.xticks(rotation=45, ha='right')
-    plt.ylabel(label)
-    plt.tight_layout()
-elif style == 'minimal':
-    # Only show first and last timestamp
-    ax = plt.gca()
-    ax.set_xticks([df['timestamp'].iloc[0], df['timestamp'].iloc[-1]])
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%y %H:%M'))
-    plt.xticks(rotation=0, ha='center')  # Flat text direction
-    plt.ylabel(label)
-    # Remove grid lines
-    ax.grid(False)
-    # Maximize figure area - remove margins
-    plt.subplots_adjust(left=0.1, right=1.0, top=1.0, bottom=0.15)
-elif style == 'sparkline':
-    # Create a new figure without frame for sparkline
-    plt.clf()  # Clear the figure
-    plt.gcf().patch.set_visible(False)  # Remove figure background/frame
-    ax = plt.axes([0, 0, 1, 1])  # Create axes that fill entire figure
-    
-    # Plot the data again since we cleared the figure
-    plt.plot(df['timestamp'], df['sensor_value'], linestyle=linestyle, marker=marker, 
-             linewidth=scaled_linewidth, markersize=scaled_markersize, color=color, 
-             alpha=line_alpha, markerfacecolor=color, markeredgecolor=color)
-    if show_points:
-        plt.plot(df['timestamp'], df['sensor_value'], linestyle='None', marker='o', 
-                 markersize=scaled_markersize, color=color, alpha=opacity)
-    
-    # Remove all spines
-    for k, v in ax.spines.items():
-        v.set_visible(False)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    
-    # Remove grid and set margins to zero
-    ax.grid(False)
-    ax.margins(0)
-    
-    # Get min/max values for annotations
-    y_min = df['sensor_value'].min()
-    y_max = df['sensor_value'].max()
-    
-    # Add min/max as text annotations positioned within plot area
-    ax.text(1, 0.99, f'{y_max:.1f}', transform=ax.transAxes, fontsize=8, 
-            verticalalignment='top', horizontalalignment='left', color='black')
-    ax.text(1, 0.01, f'{y_min:.1f}', transform=ax.transAxes, fontsize=8, 
-            verticalalignment='bottom', horizontalalignment='left', color='black')
-
-plt.show()`;
+# Generate the plot
+plot_sensor_data_func(timestamps, sensor_data, labels, colors, height, aspect_ratio, 
+                     show_line, show_points, opacity, style, y_axis_behavior)`;
 }
+
+// Register custom functions with Excel
+CustomFunctions.associate("PULL", PULL);
+// CustomFunctions.associate("SEARCH_SENSORS", SEARCH_SENSORS); // DISABLED: Clumsy UX - users need sensor names anyway to search, not helpful for end users
+CustomFunctions.associate("CURRENT", CURRENT);
+CustomFunctions.associate("AVERAGE", AVERAGE);
+CustomFunctions.associate("CREATE_PLOT_CODE", CREATE_PLOT_CODE);
 
