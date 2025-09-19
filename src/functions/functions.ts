@@ -305,7 +305,7 @@ export function PULL(
     }
     
     // Set default values for optional parameters
-    const actualMode = mode || "points";
+    const actualMode = (mode || "points").toLowerCase();
     const actualModeValue = modeValue || (actualMode === "points" ? 1000 : "15min");
     
     // Validate mode parameter
@@ -727,8 +727,8 @@ export function CREATE_PLOT_CODE(
     const actualShowLine = (showLine === undefined || showLine === null || showLine === "" || showLine === 0) ? true : Boolean(showLine);
     const actualShowPoints = (showPoints === undefined || showPoints === null || showPoints === "" || showPoints === 0) ? true : Boolean(showPoints);
     const actualOpacity = opacity || 0.9;
-    const actualStyle = style || 'sparkline';
-    const actualYAxisBehavior = yAxisBehavior || 'share';
+    const actualStyle = (style || 'sparkline').toLowerCase();
+    const actualYAxisBehavior = (yAxisBehavior || 'share').toLowerCase();
     
     // Flatten the sensor names array and filter out empty cells
     const sensorNamesList = sensorNames
