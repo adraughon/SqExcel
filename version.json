@@ -1,14 +1,14 @@
 {
-  "version": "1.0.75",
-  "description": "Added CREATE_PLOT_CODE function to generate Python plotting code with embedded sensor data",
+  "version": "1.0.76",
+  "description": "Fixed function parameter issues and added case-insensitive aliases",
   "buildDate": "2025-09-19",
   "changes": [
-    "Added new CREATE_PLOT_CODE custom function that fetches sensor data and returns Python plotting code as text",
-    "Function supports customizable plot parameters: height, aspect ratio, colors, styles, opacity, and labels",
-    "Implements three plot styles: normal, minimal, and sparkline with appropriate formatting",
-    "Defaults to 100 data points for optimal performance",
-    "Generated Python code includes embedded sensor data and complete matplotlib plotting logic",
-    "Supports all existing datetime formats and timezone handling from PULL function",
-    "Updated function documentation with usage examples and parameter descriptions"
+    "Fixed PULL function to work without requiring the last 2 optional parameters",
+    "Made all function parameters properly optional using TypeScript optional syntax",
+    "Added case-insensitive function aliases (pull, create_plot_code, search_sensors, current, average)",
+    "Improved error reporting in CREATE_PLOT_CODE for better debugging of HTTP 500 errors",
+    "Added default value handling inside functions instead of relying on TypeScript defaults",
+    "All functions now work with minimal required parameters and proper defaults",
+    "Enhanced error messages to include status codes and response details for troubleshooting"
   ]
 }

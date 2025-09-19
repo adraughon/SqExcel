@@ -277,8 +277,8 @@ export function PULL(
   sensorNames: string[][],
   startDatetime: string,
   endDatetime: string,
-  mode: string = "points",
-  modeValue: string | number = 1000
+  mode?: string,
+  modeValue?: string | number
 ): string[][] {
   try {
     // Flatten the sensor names array and filter out empty cells
@@ -310,25 +310,29 @@ export function PULL(
       return [["Error: Start datetime must be before end datetime"]];
     }
     
+    // Set default values for optional parameters
+    const actualMode = mode || "points";
+    const actualModeValue = modeValue || (actualMode === "points" ? 1000 : "15min");
+    
     // Validate mode parameter
-    if (mode !== "grid" && mode !== "points") {
+    if (actualMode !== "grid" && actualMode !== "points") {
       return [["Error: Mode must be 'grid' or 'points'"]];
     }
     
     
     // Calculate grid based on mode
     let grid: string;
-    if (mode === "grid") {
-      // Use modeValue as grid directly
-      grid = String(modeValue);
+    if (actualMode === "grid") {
+      // Use actualModeValue as grid directly
+      grid = String(actualModeValue);
       // Validate grid format
       const gridPattern = /^(\d+)(min|h|d|s)$/;
       if (!gridPattern.test(grid)) {
         return [["Error: Invalid grid format. Use format like '15min', '1h', '1d', '30s'"]];
       }
     } else {
-      // mode === "points" - calculate grid from number of points
-      const numPoints = typeof modeValue === 'number' ? modeValue : parseInt(String(modeValue));
+      // actualMode === "points" - calculate grid from number of points
+      const numPoints = typeof actualModeValue === 'number' ? actualModeValue : parseInt(String(actualModeValue));
       if (isNaN(numPoints) || numPoints <= 0) {
         return [["Error: Number of points must be a positive integer"]];
       }
@@ -671,17 +675,28 @@ export function CREATE_PLOT_CODE(
   sensorNames: string[][],
   startDatetime: string,
   endDatetime: string,
-  points: number = 100,
-  height: number = 0.3,
-  aspectRatio: number = 5,
-  showLine: boolean = true,
-  showPoints: boolean = true,
-  opacity: number = 0.9,
-  color: string = 'red',
-  style: string = 'sparkline',
-  label: string = 'Value'
+  points?: number,
+  height?: number,
+  aspectRatio?: number,
+  showLine?: boolean,
+  showPoints?: boolean,
+  opacity?: number,
+  color?: string,
+  style?: string,
+  label?: string
 ): string {
   try {
+    // Set default values for optional parameters
+    const actualPoints = points || 100;
+    const actualHeight = height || 0.3;
+    const actualAspectRatio = aspectRatio || 5;
+    const actualShowLine = showLine !== undefined ? showLine : true;
+    const actualShowPoints = showPoints !== undefined ? showPoints : true;
+    const actualOpacity = opacity || 0.9;
+    const actualColor = color || 'red';
+    const actualStyle = style || 'sparkline';
+    const actualLabel = label || 'Value';
+    
     // Flatten the sensor names array and filter out empty cells
     const sensorNamesList = sensorNames
       .flat()
@@ -709,7 +724,7 @@ export function CREATE_PLOT_CODE(
     // Calculate time range and grid for the specified number of points
     const timeRangeMs = endDate.getTime() - startDate.getTime();
     const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
-    const secondsPerPoint = Math.floor(timeRangeSeconds / points);
+    const secondsPerPoint = Math.floor(timeRangeSeconds / actualPoints);
     
     if (secondsPerPoint < 1) {
       return "Error: Time range too short for requested number of points. Try fewer points or a longer time range.";
@@ -748,7 +763,21 @@ export function CREATE_PLOT_CODE(
     });
     
     if (!result.success || !result.data || result.data.length === 0) {
-      return "Error: No data returned from sensor. " + (result.error || result.message || "Unknown error");
+      // Provide more detailed error information for debugging
+      let errorMsg = "Error: No data returned from sensor. ";
+      if (result.error) {
+        errorMsg += "Error: " + result.error;
+      }
+      if (result.message) {
+        errorMsg += " Message: " + result.message;
+      }
+      if (result.status_code) {
+        errorMsg += " Status: " + result.status_code;
+      }
+      if (result.responseText) {
+        errorMsg += " Response: " + result.responseText.substring(0, 200);
+      }
+      return errorMsg;
     }
 
     // Extract timestamps and sensor values
@@ -788,14 +817,14 @@ export function CREATE_PLOT_CODE(
     const pythonCode = generatePythonPlotCode(
       timestamps,
       sensorValues,
-      height,
-      aspectRatio,
-      showLine,
-      showPoints,
-      opacity,
-      color,
-      style,
-      label
+      actualHeight,
+      actualAspectRatio,
+      actualShowLine,
+      actualShowPoints,
+      actualOpacity,
+      actualColor,
+      actualStyle,
+      actualLabel
     );
 
     return pythonCode;
@@ -919,4 +948,59 @@ elif style == 'sparkline':
             verticalalignment='bottom', horizontalalignment='left', color='black')
 
 plt.show()`;
+}
+
+// Case-insensitive function aliases
+/**
+ * @customfunction pull
+ */
+export function pull(
+  sensorNames: string[][],
+  startDatetime: string,
+  endDatetime: string,
+  mode?: string,
+  modeValue?: string | number
+): string[][] {
+  return PULL(sensorNames, startDatetime, endDatetime, mode, modeValue);
+}
+
+/**
+ * @customfunction search_sensors
+ */
+export function search_sensors(sensorNames: string[][]): string[][] {
+  return SEARCH_SENSORS(sensorNames);
+}
+
+/**
+ * @customfunction current
+ */
+export function current(sensorName: string): any {
+  return CURRENT(sensorName);
+}
+
+/**
+ * @customfunction average
+ */
+export function average(sensorName: string, startDatetime: string, endDatetime: string): any {
+  return AVERAGE(sensorName, startDatetime, endDatetime);
+}
+
+/**
+ * @customfunction create_plot_code
+ */
+export function create_plot_code(
+  sensorNames: string[][],
+  startDatetime: string,
+  endDatetime: string,
+  points?: number,
+  height?: number,
+  aspectRatio?: number,
+  showLine?: boolean,
+  showPoints?: boolean,
+  opacity?: number,
+  color?: string,
+  style?: string,
+  label?: string
+): string {
+  return CREATE_PLOT_CODE(sensorNames, startDatetime, endDatetime, points, height, aspectRatio, showLine, showPoints, opacity, color, style, label);
 }
