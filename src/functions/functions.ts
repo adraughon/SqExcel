@@ -655,7 +655,7 @@ export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: 
 const COLOR_MAP: { [key: string]: string } = {
   'red': '#FF006E',
   'blue': '#3A86FF',
-  'green': '#107D42',
+  'green': '#117D43',
   'yellow': '#FFBE0B',
   'black': '#1C1C1C',
   'gray': '#6C757D',
@@ -730,16 +730,24 @@ export function CREATE_PLOT_CODE(
     const actualStyle = style || 'sparkline';
     const actualYAxisBehavior = yAxisBehavior || 'share';
     
-    // Parse colors (comma-separated or single color)
-    const colorList = colors ? colors.split(',').map(c => getColorHex(c.trim())) : ['#40C9A2', '#E74C3C', '#3498DB', '#9B59B6', '#F39C12'];
-    
-    // Parse labels (comma-separated or single label)  
-    const labelList = labels ? labels.split(',').map(l => l.trim()) : null;
-    
     // Flatten the sensor names array and filter out empty cells
     const sensorNamesList = sensorNames
       .flat()
       .filter(name => name && name.trim() !== "");
+    
+    // Parse colors (comma-separated or single color) - always provide defaults using our COLOR_MAP
+    const defaultColors = [
+      COLOR_MAP['green'],    // #117D43
+      COLOR_MAP['red'],      // #FF006E  
+      COLOR_MAP['blue'],     // #3A86FF
+      COLOR_MAP['purple'],   // #8B5CF6
+      COLOR_MAP['orange']    // #FF6B35
+    ];
+    const colorList = colors ? colors.split(',').map(c => getColorHex(c.trim())) : defaultColors;
+    
+    // Parse labels (comma-separated or single label) - always provide defaults
+    const defaultLabels = sensorNamesList.length === 1 ? ['Value'] : sensorNamesList.map((_, i) => `Sensor ${i + 1}`);
+    const labelList = labels ? labels.split(',').map(l => l.trim()) : defaultLabels;
     
     if (sensorNamesList.length === 0) {
       return "Error: No sensor names provided";
@@ -912,14 +920,14 @@ function generatePythonPlotCode(
   
   // Convert colors and labels to Python format
   const colorsPython = colors.map(c => `'${c}'`).join(', ');
-  const labelsPython = labels ? labels.map(l => `'${l}'`).join(', ') : 'None';
+  const labelsPython = labels.map(l => `'${l}'`).join(', ');
 
   return `import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
 
-def plot_sensor_data_func(timestamps, sensor_data, labels=None, colors=None, 
+def plot_sensor_data_func(timestamps, sensor_data, labels, colors, 
                          height=0.3, aspect_ratio=5, show_line=True, show_points=True, 
                          opacity=0.9, style='sparkline', y_axis_behavior='share'):
     """
@@ -928,8 +936,8 @@ def plot_sensor_data_func(timestamps, sensor_data, labels=None, colors=None,
     Parameters:
     - timestamps: list of timestamp strings or datetime objects
     - sensor_data: list of sensor values (single sensor) or list of lists (multiple sensors)
-    - labels: list of labels for each sensor (default: 'Sensor 1', 'Sensor 2', etc.)
-    - colors: list of colors for each sensor (default: predefined colors)
+    - labels: list of labels for each sensor (provided by JavaScript)
+    - colors: list of colors for each sensor (provided by JavaScript)
     - height: figure height
     - aspect_ratio: width/height ratio
     - show_line: whether to show connecting lines
@@ -956,16 +964,7 @@ def plot_sensor_data_func(timestamps, sensor_data, labels=None, colors=None,
     
     num_sensors = len(sensor_data)
     
-    # Set default labels and colors
-    if labels is None:
-        if num_sensors == 1:
-            labels = ['Value']
-        else:
-            labels = [f'Sensor {i+1}' for i in range(num_sensors)]
-    
-    if colors is None:
-        default_colors = ['#40C9A2', '#E74C3C', '#3498DB', '#9B59B6', '#F39C12']
-        colors = default_colors[:num_sensors]
+    # Labels and colors are always provided by JavaScript
     
     # Create DataFrame
     df_data = {'timestamp': timestamps}
@@ -1100,7 +1099,7 @@ def plot_sensor_data_func(timestamps, sensor_data, labels=None, colors=None,
 # Data from Seeq sensors
 timestamps = [${timestampsPython}]
 sensor_data = [${sensorDataPython}]
-labels = [${labelsPython}] if ${labelsPython} != None else None
+labels = [${labelsPython}]
 colors = [${colorsPython}]
 
 # Plot parameters

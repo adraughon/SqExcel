@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "bump-version": "node scripts/bump-version.js",
-    "build": "npm run bump-version && webpack --mode production",
+    "release": "npm run bump-version && git add -A && git commit -m \"Release v$(node -p \"require('./version.json').version\")\" && git push",
+    "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "dev-server": "webpack serve --mode development",
     "lint": "office-addin-lint check",

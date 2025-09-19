@@ -58,86 +58,162 @@
         </div>
 
         <!-- Getting Started (enhanced) -->
-        <div id="diagnostics" class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
-            <h3 class="text-lg font-medium mb-3">Getting Started</h3>
+        <div id="diagnostics" class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm w-full">
+            <h3 class="text-xl font-semibold mb-6 text-gray-800">Getting Started</h3>
             
             <!-- Setup Steps -->
-            <div class="mb-4">
-                <h4 class="text-sm font-semibold mb-2 text-gray-700">1. Setup Authentication</h4>
-                <ol class="list-decimal list-inside text-sm space-y-1 ml-2">
-                    <li>Go to Seeq → Profile → Access Keys → Create</li>
-                    <li>Copy both the Access Key and Password</li>
-                    <li>Enter your Seeq server URL, Key, and Password above</li>
-                    <li>Click "Authenticate"</li>
-                </ol>
+            <div class="mb-8">
+                <h4 class="text-base font-semibold mb-4 text-gray-700 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">1</span>
+                    Setup Authentication
+                </h4>
+                <div class="ml-9">
+                    <ol class="list-decimal list-inside text-sm space-y-2">
+                        <li class="text-gray-600">Go to <strong>Seeq → Profile → Access Keys → Create</strong></li>
+                        <li class="text-gray-600">Copy both the <strong>Access Key</strong> and <strong>Password</strong></li>
+                        <li class="text-gray-600">Enter your Seeq server URL, Key, and Password above</li>
+                        <li class="text-gray-600">Click <strong>"Authenticate"</strong></li>
+                    </ol>
+                </div>
             </div>
 
             <!-- Function Examples -->
-            <div class="mb-4">
-                <h4 class="text-sm font-semibold mb-2 text-gray-700">2. Excel Functions</h4>
+            <div class="mb-8">
+                <h4 class="text-base font-semibold mb-4 text-gray-700 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">2</span>
+                    Excel Functions
+                </h4>
                 
-
                 <!-- PULL -->
-                <div class="mb-3">
-                    <h5 class="text-xs font-medium text-gray-600 mb-1">PULL - Get time series data</h5>
-                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block text-xs mb-1">=SqExcel.PULL(A1:C1,"2024-01-01T00:00:00","2024-01-02T00:00:00")</code>
-                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block text-xs mb-1">=SqExcel.PULL(A1:C1,"8/1/2025 0:00","8/2/2025 0:00","points",500)</code>
-                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block text-xs mb-1">=SqExcel.PULL(A1:C1,"8/1/2025 0:00","8/2/2025 0:00","grid","15min")</code>
-                    <p class="text-xs text-gray-600">• <strong>sensorNames:</strong> Range like A1:C1 with sensor names</p>
-                    <p class="text-xs text-gray-600">• <strong>startDatetime:</strong> "2024-01-01T00:00:00" or "8/1/2025 0:00"</p>
-                    <p class="text-xs text-gray-600">• <strong>endDatetime:</strong> "2024-01-02T00:00:00" or "8/2/2025 0:00"</p>
-                    <p class="text-xs text-gray-600">• <strong>mode:</strong> "points" (default) or "grid"</p>
-                    <p class="text-xs text-gray-600">• <strong>modeValue:</strong> Number of points (1000) or interval ("15min", "1h", "1d")</p>
+                <div class="mb-6 ml-9 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-mono mr-2">PULL</span>
+                        Get time series data
+                    </h5>
+                    
+                    <div class="space-y-2 mb-3">
+                        <code class="bg-white border rounded px-3 py-2 block text-xs font-mono text-gray-800 shadow-sm">=SqExcel.PULL(A1:C1,"2024-01-01T00:00:00","2024-01-02T00:00:00")</code>
+                        <code class="bg-white border rounded px-3 py-2 block text-xs font-mono text-gray-800 shadow-sm">=SqExcel.PULL(A1:C1,"8/1/2025 0:00","8/2/2025 0:00","points",500)</code>
+                        <code class="bg-white border rounded px-3 py-2 block text-xs font-mono text-gray-800 shadow-sm">=SqExcel.PULL(A1:C1,"8/1/2025 0:00","8/2/2025 0:00","grid","15min")</code>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">sensorNames:</span> Range like A1:C1 with sensor names</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">startDatetime:</span> "2024-01-01T00:00:00" or "8/1/2025 0:00"</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">endDatetime:</span> "2024-01-02T00:00:00" or "8/2/2025 0:00"</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">mode:</span> "points" (default) or "grid"</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">modeValue:</span> Number of points (1000) or interval ("15min", "1h", "1d")</p>
+                    </div>
                 </div>
 
                 <!-- CURRENT -->
-                <div class="mb-3">
-                    <h5 class="text-xs font-medium text-gray-600 mb-1">CURRENT - Get current sensor value</h5>
-                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block text-xs mb-1">=SqExcel.CURRENT("Area/Temperature")</code>
-                    <p class="text-xs text-gray-600">• <strong>sensorName:</strong> Single sensor name as text</p>
-                    <p class="text-xs text-gray-600">• Returns: Current scalar value</p>
+                <div class="mb-6 ml-9 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-mono mr-2">CURRENT</span>
+                        Get current sensor value
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <code class="bg-white border rounded px-3 py-2 block text-xs font-mono text-gray-800 shadow-sm">=SqExcel.CURRENT("Area/Temperature")</code>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">sensorName:</span> Single sensor name as text</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">Returns:</span> Current scalar value</p>
+                    </div>
                 </div>
 
                 <!-- AVERAGE -->
-                <div class="mb-3">
-                    <h5 class="text-xs font-medium text-gray-600 mb-1">AVERAGE - Calculate average over time range</h5>
-                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block text-xs mb-1">=SqExcel.AVERAGE("Area/Temperature","8/1/2025 0:00","8/1/2025 1:00")</code>
-                    <p class="text-xs text-gray-600">• <strong>sensorName:</strong> Single sensor name as text</p>
-                    <p class="text-xs text-gray-600">• <strong>startDatetime, endDatetime:</strong> Time range for averaging</p>
-                    <p class="text-xs text-gray-600">• Returns: Average value over 100 data points</p>
+                <div class="mb-6 ml-9 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-mono mr-2">AVERAGE</span>
+                        Calculate average over time range
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <code class="bg-white border rounded px-3 py-2 block text-xs font-mono text-gray-800 shadow-sm">=SqExcel.AVERAGE("Area/Temperature","8/1/2025 0:00","8/1/2025 1:00")</code>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">sensorName:</span> Single sensor name as text</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">startDatetime, endDatetime:</span> Time range for averaging</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">Returns:</span> Average value over 100 data points</p>
+                    </div>
                 </div>
 
                 <!-- CREATE_PLOT_CODE -->
-                <div class="mb-3">
-                    <h5 class="text-xs font-medium text-gray-600 mb-1">CREATE_PLOT_CODE - Generate Python plotting code (supports multiple sensors)</h5>
-                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block text-xs mb-1">=SqExcel.CREATE_PLOT_CODE(A1:C1,"8/1/2025 0:00","8/1/2025 1:00")</code>
-                    <code class="bg-gray-100 rounded px-1.5 py-0.5 block text-xs mb-1">=SqExcel.CREATE_PLOT_CODE(A1:B1,"8/1/2025","8/2/2025",100,0.5,4,TRUE,TRUE,0.8,"green,red","normal","Temp,Press","split")</code>
-                    <p class="text-xs text-gray-600">• <strong>sensorNames:</strong> Range with sensor names (A1:C1 for multiple sensors)</p>
-                    <p class="text-xs text-gray-600">• <strong>startDatetime, endDatetime:</strong> Time range</p>
-                    <p class="text-xs text-gray-600">• <strong>Optional:</strong> points(100), height(0.3), aspectRatio(5), showLine(true), showPoints(true)</p>
-                    <p class="text-xs text-gray-600">• <strong>Optional:</strong> opacity(0.9), colors("green,red,blue"), style("sparkline")</p>
-                    <p class="text-xs text-gray-600">• <strong>Optional:</strong> labels("Sensor 1,Sensor 2"), yAxisBehavior("share" or "split")</p>
-                    <p class="text-xs text-gray-600">• <strong>Multi-sensor:</strong> Use comma-separated colors/labels, "split" for dual y-axis</p>
-                    <p class="text-xs text-gray-600">• Returns: Complete Python matplotlib code with enhanced multi-sensor support</p>
+                <div class="mb-6 ml-9 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-mono mr-2">CREATE_PLOT_CODE</span>
+                        Generate Python plotting code (supports multiple sensors)
+                    </h5>
+                    
+                    <div class="space-y-2 mb-3">
+                        <code class="bg-white border rounded px-3 py-2 block text-xs font-mono text-gray-800 shadow-sm">=SqExcel.CREATE_PLOT_CODE(A1:C1,"8/1/2025 0:00","8/1/2025 1:00")</code>
+                        <code class="bg-white border rounded px-3 py-2 block text-xs font-mono text-gray-800 shadow-sm">=SqExcel.CREATE_PLOT_CODE(A1:B1,"8/1/2025","8/2/2025",100,0.5,4,TRUE,TRUE,0.8,"<span style='color: #117D43; font-weight: bold;'>green</span>,<span style='color: #FF006E; font-weight: bold;'>red</span>","normal","Temp,Press","split")</code>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">sensorNames:</span> Range with sensor names (A1:C1 for multiple sensors)</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">startDatetime, endDatetime:</span> Time range</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">Optional:</span> points(100), height(0.3), aspectRatio(5), showLine(true), showPoints(true)</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">Optional:</span> opacity(0.9), colors("<span style='color: #117D43; font-weight: bold;'>green</span>,<span style='color: #FF006E; font-weight: bold;'>red</span>,<span style='color: #3A86FF; font-weight: bold;'>blue</span>"), style("sparkline")</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">Optional:</span> labels("Sensor 1,Sensor 2"), yAxisBehavior("share" or "split")</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">Multi-sensor:</span> Use comma-separated colors/labels, "split" for dual y-axis</p>
+                        <p class="text-xs text-gray-600"><span class="font-semibold text-gray-700">Returns:</span> Complete Python matplotlib code with enhanced multi-sensor support</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Tips -->
-            <div class="mb-4">
-                <h4 class="text-sm font-semibold mb-2 text-gray-700">3. Tips</h4>
-                <ul class="text-xs text-gray-600 space-y-1 ml-2">
-                    <li>• Timestamp columns return Excel serial numbers - format as Date to see readable times</li>
-                    <li>• Use ranges (A1:C1) for multiple sensors in PULL and CREATE_PLOT_CODE</li>
-                    <li>• Time formats: "2024-01-01T00:00:00" or "8/1/2025 0:00" both work</li>
-                    <li>• Grid intervals: "15min", "1h", "2h", "1d", "30s" etc.</li>
-                    <li>• Colors: "red", "blue", "green" or hex codes like "#FF0000"</li>
-                    <li>• Multi-sensor plotting: Use comma-separated colors/labels ("red,blue", "Temp,Press")</li>
-                    <li>• Y-axis modes: "share" (overlay sensors) or "split" (dual y-axis for 2 sensors)</li>
-                    <li>• Plot styles: "sparkline" (minimal), "minimal" (basic axes), "normal" (full grid)</li>
-                </ul>
+            <div class="mb-6">
+                <h4 class="text-base font-semibold mb-4 text-gray-700 flex items-center">
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">3</span>
+                    Tips
+                </h4>
+                <div class="ml-9 bg-blue-50 rounded-lg p-4 border border-blue-100">
+                    <ul class="text-sm text-gray-700 space-y-2">
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Timestamp columns return Excel serial numbers - format as Date to see readable times</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Use ranges (A1:C1) for multiple sensors in PULL and CREATE_PLOT_CODE</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Time formats: "2024-01-01T00:00:00" or "8/1/2025 0:00" both work</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Grid intervals: "15min", "1h", "2h", "1d", "30s" etc.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Colors: "<span style='color: #FF006E; font-weight: bold;'>red</span>", "<span style='color: #3A86FF; font-weight: bold;'>blue</span>", "<span style='color: #117D43; font-weight: bold;'>green</span>" or hex codes like "<span style='color: #FF0000; font-weight: bold;'>#FF0000</span>"</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Multi-sensor plotting: Use comma-separated colors/labels ("<span style='color: #FF006E; font-weight: bold;'>red</span>,<span style='color: #3A86FF; font-weight: bold;'>blue</span>", "Temp,Press")</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Y-axis modes: "share" (overlay sensors) or "split" (dual y-axis for 2 sensors)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2">•</span>
+                            <span>Plot styles: "sparkline" (minimal), "minimal" (basic axes), "normal" (full grid)</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <p class="text-sm text-gray-700 border-t pt-2">Need Help? → <a href="mailto:austin@radialflow.net" class="text-indigo-600 underline">austin@radialflow.net</a></p>
+            <div class="border-t pt-4">
+                <p class="text-sm text-gray-600 text-center">
+                    Need Help? → <a href="mailto:austin@radialflow.net" class="text-indigo-600 underline font-medium">austin@radialflow.net</a>
+                </p>
+            </div>
         </div>
 
         <!-- Search and Data Sections (hidden by default; IDs preserved) -->
