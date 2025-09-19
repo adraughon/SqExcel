@@ -952,7 +952,7 @@ plt.show()`;
 
 // Case-insensitive function aliases
 /**
- * @customfunction pull
+ * @customfunction PULL_LOWER
  */
 export function pull(
   sensorNames: string[][],
@@ -965,28 +965,28 @@ export function pull(
 }
 
 /**
- * @customfunction search_sensors
+ * @customfunction SEARCH_SENSORS_LOWER
  */
 export function search_sensors(sensorNames: string[][]): string[][] {
   return SEARCH_SENSORS(sensorNames);
 }
 
 /**
- * @customfunction current
+ * @customfunction CURRENT_LOWER
  */
 export function current(sensorName: string): any {
   return CURRENT(sensorName);
 }
 
 /**
- * @customfunction average
+ * @customfunction AVERAGE_LOWER
  */
 export function average(sensorName: string, startDatetime: string, endDatetime: string): any {
   return AVERAGE(sensorName, startDatetime, endDatetime);
 }
 
 /**
- * @customfunction create_plot_code
+ * @customfunction CREATE_PLOT_CODE_LOWER
  */
 export function create_plot_code(
   sensorNames: string[][],
