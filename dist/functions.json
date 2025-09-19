@@ -151,7 +151,7 @@
                     "type": "number"
                 },
                 {
-                    "description": "Plot color (defaults to 'red')",
+                    "description": "Plot color - use color names like 'green', 'blue', 'red' or hex codes (defaults to 'green')",
                     "name": "color",
                     "optional": true,
                     "type": "string"

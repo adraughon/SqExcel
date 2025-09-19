@@ -1,14 +1,14 @@
 {
-  "version": "1.0.78",
-  "description": "Fixed function parameter issues and added case-insensitive aliases",
+  "version": "1.0.80",
+  "description": "Enhanced CREATE_PLOT_CODE with beautiful color mapping and improved defaults",
   "buildDate": "2025-09-19",
   "changes": [
-    "Fixed PULL function to work without requiring the last 2 optional parameters",
-    "Made all function parameters properly optional using TypeScript optional syntax",
-    "Added case-insensitive function aliases (pull, create_plot_code, search_sensors, current, average)",
-    "Improved error reporting in CREATE_PLOT_CODE for better debugging of HTTP 500 errors",
-    "Added default value handling inside functions instead of relying on TypeScript defaults",
-    "All functions now work with minimal required parameters and proper defaults",
-    "Enhanced error messages to include status codes and response details for troubleshooting"
+    "Updated CREATE_PLOT_CODE default values: showLine=true, showPoints=true, color='green'",
+    "Added beautiful color mapping system with 13 predefined colors including vibrant options",
+    "Color mapping includes: red, blue, green, yellow, black, gray/grey, orange, purple, pink, brown, maroon, cyan, slate",
+    "All colors use beautiful hex codes for better visual appeal (e.g., green=#40C9A2, purple=#8B5CF6)",
+    "Color parameter now accepts both color names and hex codes for flexibility",
+    "Default color changed from red to green for better visual aesthetics",
+    "Added getColorHex helper function for robust color handling"
   ]
 }

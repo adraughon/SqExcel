@@ -33,7 +33,7 @@
  *    - PULL with grid: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59","grid","15min")
  *    - PULL with points: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59,"points",500)
  *    - CREATE_PLOT_CODE: =CREATE_PLOT_CODE(A1,"2024-01-01T00:00:00","2024-01-31T23:59:59") - basic usage
- *    - CREATE_PLOT_CODE with options: =CREATE_PLOT_CODE(A1,"2024-01-01","2024-01-02",100,0.5,4,TRUE,TRUE,0.8,"blue","normal","Temperature")
+ *    - CREATE_PLOT_CODE with options: =CREATE_PLOT_CODE(A1,"2024-01-01","2024-01-02",100,0.5,4,TRUE,TRUE,0.8,"green","normal","Temperature")
  * 
  * TROUBLESHOOTING:
  * - If you see "#NAME?" errors, make sure the add-in is properly loaded
@@ -653,6 +653,40 @@ export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: 
 }
 
 /**
+ * Beautiful color mapping for plots
+ */
+const COLOR_MAP: { [key: string]: string } = {
+  'red': '#FF006E',
+  'blue': '#3A86FF',
+  'green': '#40C9A2',
+  'yellow': '#FFBE0B',
+  'black': '#1C1C1C',
+  'gray': '#6C757D',
+  'grey': '#6C757D',
+  'orange': '#FF6B35',
+  'purple': '#8B5CF6',
+  'pink': '#F472B6',
+  'brown': '#A0522D',
+  'maroon': '#B03A2E',
+  'cyan': '#17A2B8',
+  'slate': '#2F3640'
+};
+
+/**
+ * Helper function to get color hex code from color name or return hex if already provided
+ */
+function getColorHex(colorInput: string): string {
+  // If it's already a hex color, return as-is
+  if (colorInput.startsWith('#')) {
+    return colorInput;
+  }
+  
+  // Look up in color map (case insensitive)
+  const normalizedColor = colorInput.toLowerCase();
+  return COLOR_MAP[normalizedColor] || COLOR_MAP['green']; // Default to green if not found
+}
+
+/**
  * Creates Python plotting code with embedded sensor data for visualization.
  * This function fetches sensor data and returns complete Python code as text.
  * 
@@ -666,7 +700,7 @@ export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: 
  * @param showLine Whether to show connecting lines (defaults to true)
  * @param showPoints Whether to show data points (defaults to true)
  * @param opacity Point and line opacity 0-1 (defaults to 0.9)
- * @param color Plot color (defaults to 'red')
+ * @param color Plot color - use color names like 'green', 'blue', 'red' or hex codes (defaults to 'green')
  * @param style Plot style: 'normal', 'minimal', or 'sparkline' (defaults to 'sparkline')
  * @param label Y-axis label (defaults to 'Value')
  * @returns Python code as text string
@@ -693,7 +727,7 @@ export function CREATE_PLOT_CODE(
     const actualShowLine = showLine !== undefined ? showLine : true;
     const actualShowPoints = showPoints !== undefined ? showPoints : true;
     const actualOpacity = opacity || 0.9;
-    const actualColor = color || 'red';
+    const actualColor = getColorHex(color || 'green');
     const actualStyle = style || 'sparkline';
     const actualLabel = label || 'Value';
     
