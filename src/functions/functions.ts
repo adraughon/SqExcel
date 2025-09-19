@@ -712,8 +712,8 @@ export function CREATE_PLOT_CODE(
   points?: number,
   height?: number,
   aspectRatio?: number,
-  showLine?: boolean,
-  showPoints?: boolean,
+  showLine?: any,
+  showPoints?: any,
   opacity?: number,
   color?: string,
   style?: string,
@@ -724,8 +724,10 @@ export function CREATE_PLOT_CODE(
     const actualPoints = points || 100;
     const actualHeight = height || 0.3;
     const actualAspectRatio = aspectRatio || 5;
-    const actualShowLine = showLine !== undefined ? showLine : true;
-    const actualShowPoints = showPoints !== undefined ? showPoints : true;
+    // Handle boolean parameters with robust default handling
+    // Excel may pass empty string, null, undefined, or false when parameter is omitted
+    const actualShowLine = (showLine === undefined || showLine === null || showLine === "" || showLine === 0) ? true : Boolean(showLine);
+    const actualShowPoints = (showPoints === undefined || showPoints === null || showPoints === "" || showPoints === 0) ? true : Boolean(showPoints);
     const actualOpacity = opacity || 0.9;
     const actualColor = getColorHex(color || 'green');
     const actualStyle = style || 'sparkline';

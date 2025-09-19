@@ -136,13 +136,13 @@
                     "description": "Whether to show connecting lines (defaults to true)",
                     "name": "showLine",
                     "optional": true,
-                    "type": "boolean"
+                    "type": "any"
                 },
                 {
                     "description": "Whether to show data points (defaults to true)",
                     "name": "showPoints",
                     "optional": true,
-                    "type": "boolean"
+                    "type": "any"
                 },
                 {
                     "description": "Point and line opacity 0-1 (defaults to 0.9)",
