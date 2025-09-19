@@ -365,7 +365,7 @@ function loadSavedCredentials(): void {
       if (hoursDiff < 24) {
         // Credentials are still valid, update UI
         updateAuthUI(true);
-        showAuthStatus("Using saved credentials", "info");
+        showAuthStatus("Authenticated", "success");
         
         // Recreate API client with saved URL
         if (credentials.url) {

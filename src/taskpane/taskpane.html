@@ -35,9 +35,9 @@
         <h2 class="text-base">Please <a class="text-indigo-600 underline" target="_blank" href="https://learn.microsoft.com/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing">sideload</a> your add-in to see app body.</h2>
     </section>
 
-    <main id="app-body" style="display: none;" class="p-2 flex flex-col gap-6 w-full">
+    <main id="app-body" style="display: none;" class="p-4 flex flex-col gap-6 w-full">
         <!-- Cards Container -->
-        <div class="cards">
+        <div class="cards space-y-6">
             <!-- Seeq Auth Card -->
             <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
                 <h3 class="text-lg font-medium mb-3">Seeq Authentication</h3>
@@ -99,16 +99,19 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
             <!-- Excel Functions Card -->
             <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
                 <h3 class="text-xl font-semibold mb-4 text-gray-800">Excel Functions</h3>
                 
-                <!-- PULL Function Sub-card -->
-                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
-                    <h4 class="text-base font-semibold text-gray-800 mb-3">=SqExcel.PULL(sensorNames, startDatetime, endDatetime, [mode], [modeValue])</h4>
-                    
-                    <p class="text-sm text-gray-600 mb-4"><strong>Description:</strong> Retrieves time series data from Seeq sensors</p>
+                <!-- PULL Function -->
+                <div class="mb-6">
+                    <div class="bg-green-100 text-green-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                        PULL
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2 font-medium">Retrieves time series data from Seeq sensors</p>
+                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.PULL(sensorNames, startDatetime, endDatetime, [mode], [modeValue])</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
@@ -132,11 +135,13 @@
                     <p class="text-xs text-gray-600"><strong>Returns:</strong> Time series data with timestamps and sensor values</p>
                 </div>
 
-                <!-- CURRENT Function Sub-card -->
-                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
-                    <h4 class="text-base font-semibold text-gray-800 mb-3">=SqExcel.CURRENT(sensorName)</h4>
-                    
-                    <p class="text-sm text-gray-600 mb-4"><strong>Description:</strong> Gets the current value of a single sensor</p>
+                <!-- CURRENT Function -->
+                <div class="mb-6">
+                    <div class="bg-blue-100 text-blue-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                        CURRENT
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2 font-medium">Gets the current value of a single sensor</p>
+                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.CURRENT(sensorName)</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
@@ -153,11 +158,13 @@
                     <p class="text-xs text-gray-600"><strong>Returns:</strong> Current scalar value</p>
                 </div>
 
-                <!-- AVERAGE Function Sub-card -->
-                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
-                    <h4 class="text-base font-semibold text-gray-800 mb-3">=SqExcel.AVERAGE(sensorName, startDatetime, endDatetime)</h4>
-                    
-                    <p class="text-sm text-gray-600 mb-4"><strong>Description:</strong> Calculates average value over a time range</p>
+                <!-- AVERAGE Function -->
+                <div class="mb-6">
+                    <div class="bg-purple-100 text-purple-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                        AVERAGE
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2 font-medium">Calculates average value over a time range</p>
+                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.AVERAGE(sensorName, startDatetime, endDatetime)</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
@@ -176,11 +183,13 @@
                     <p class="text-xs text-gray-600"><strong>Returns:</strong> Average value over 100 data points</p>
                 </div>
 
-                <!-- CREATE_PLOT_CODE Function Sub-card -->
-                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 mb-3">
-                    <h4 class="text-base font-semibold text-gray-800 mb-3">=SqExcel.CREATE_PLOT_CODE(sensorNames, startDatetime, endDatetime, [points], [height], [aspectRatio], [showLine], [showPoints], [opacity], [colors], [style], [labels], [yAxisBehavior])</h4>
-                    
-                    <p class="text-sm text-gray-600 mb-4"><strong>Description:</strong> Generates Python matplotlib code for plotting sensor data</p>
+                <!-- CREATE_PLOT_CODE Function -->
+                <div class="mb-6">
+                    <div class="bg-orange-100 text-orange-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                        CREATE_PLOT_CODE
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2 font-medium">Generates Python matplotlib code for plotting sensor data</p>
+                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.CREATE_PLOT_CODE(sensorNames, startDatetime, endDatetime, [points], [height], [aspectRatio], [showLine], [showPoints], [opacity], [colors], [style], [labels], [yAxisBehavior])</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
@@ -226,18 +235,16 @@
                         <ol class="space-y-1 text-xs text-blue-700">
                             <li><strong>1.</strong> Go to an empty cell where you want the plot</li>
                             <li><strong>2.</strong> Type <code class="bg-blue-100 px-1 rounded font-mono">=PY</code> to enter Python mode</li>
-                            <li><strong>3.</strong> Press Enter, type <code class="bg-blue-100 px-1 rounded font-mono">exec(</code>, click the cell with plot code, then <code class="bg-blue-100 px-1 rounded font-mono">)</code></li>
-                            <li><strong>4.</strong> Press Enter to execute</li>
+                            <li><strong>3.</strong> Type <code class="bg-blue-100 px-1 rounded font-mono">exec(</code>,  and click the cell with plot code, then <code class="bg-blue-100 px-1 rounded font-mono">)</code></li>
+                            <li><strong>4.</strong> Press Ctrl + Enter to execute the cell</li>
                         </ol>
                         <div class="mt-2 p-2 bg-blue-100 rounded text-xs">
-                            <strong class="text-blue-800">💡 Tip:</strong> <span class="text-blue-700">If Excel shows a message instead of the plot, click the icon next to "PY" in the formula bar and change from "Python Object" to "Excel Value"</span>
+                            <strong class="text-blue-800">💡 Tip:</strong> <span class="text-blue-700">If Excel shows a message like <code class="bg-blue-100 px-1 rounded font-mono">PY[Image]</code> instead of the plot, click the icon next to "PY" in the formula bar and change from "Python Object" to "Excel Value"</span>
                         </div>
                     </div>
                     
                     <p class="text-xs text-gray-600 mt-4"><strong>Returns:</strong> Complete Python matplotlib code for creating plots</p>
                 </div>
-            </div>
-
             </div>
 
             <!-- Need Help Card -->
@@ -246,42 +253,6 @@
                 <p class="text-sm text-gray-600 text-center">
                     Contact us at <a href="mailto:austin@radialflow.net" class="text-indigo-600 underline font-medium">austin@radialflow.net</a>
                 </p>
-            </div>
-        </div>
-
-        <!-- Search and Data Sections (hidden by default; IDs preserved) -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full" style="display: none;" >
-            <h3 class="text-lg font-medium mb-3">Sensor Search</h3>
-            <div class="grid grid-cols-1 gap-3">
-                <label class="block">
-                    <span class="text-sm text-gray-600">Sensor Names (comma-separated)</span>
-                    <input type="text" id="sensor-names" placeholder="Sensor1, Sensor2, Sensor3" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
-                </label>
-                <label class="block">
-                    <span class="text-sm text-gray-600">Start Time</span>
-                    <input type="datetime-local" id="start-time" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
-                </label>
-                <label class="block">
-                    <span class="text-sm text-gray-600">End Time</span>
-                    <input type="datetime-local" id="end-time" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
-                </label>
-                <label class="block">
-                    <span class="text-sm text-gray-600">Data Mode</span>
-                    <select id="data-mode" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                        <option value="points">Points (number of data points)</option>
-                        <option value="grid">Grid (time interval)</option>
-                    </select>
-                </label>
-                <label class="block">
-                    <span class="text-sm text-gray-600" id="mode-value-label">Number of Points</span>
-                    <input type="number" id="mode-value" placeholder="1000" value="1000" class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
-                </label>
-                <div class="flex items-center gap-2 pt-1">
-                    <button id="search-sensors" class="px-3 py-1.5 text-sm text-white rounded-md hover:opacity-95" style="background-color: #55924C;">Search Sensors</button>
-                    <button id="pull-data" class="px-3 py-1.5 text-sm text-white rounded-md hover:opacity-95" style="background-color: #55924C;">Pull Data</button>
-                </div>
-                <div id="search-results" class="text-sm"></div>
-                <div id="data-results" class="text-sm"></div>
             </div>
         </div>
 
