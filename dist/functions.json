@@ -92,6 +92,86 @@
                 }
             ],
             "result": {}
+        },
+        {
+            "description": "Creates Python plotting code with embedded sensor data for visualization.\nThis function fetches sensor data and returns complete Python code as text.",
+            "id": "CREATE_PLOT_CODE",
+            "name": "CREATE_PLOT_CODE",
+            "parameters": [
+                {
+                    "description": "Range containing sensor names (e.g., B1:D1)",
+                    "dimensionality": "matrix",
+                    "name": "sensorNames",
+                    "type": "string"
+                },
+                {
+                    "description": "Start time for data pull (ISO format: \"2024-01-01T00:00:00\" or \"8/1/2025 0:00\")",
+                    "name": "startDatetime",
+                    "type": "string"
+                },
+                {
+                    "description": "End time for data pull (ISO format: \"2024-01-31T23:59:59\" or \"8/3/2025 0:00\")",
+                    "name": "endDatetime",
+                    "type": "string"
+                },
+                {
+                    "description": "Number of data points to retrieve (defaults to 100)",
+                    "name": "points",
+                    "optional": true,
+                    "type": "number"
+                },
+                {
+                    "description": "Plot height in inches (defaults to 0.3)",
+                    "name": "height",
+                    "optional": true,
+                    "type": "number"
+                },
+                {
+                    "description": "Width to height ratio (defaults to 5)",
+                    "name": "aspectRatio",
+                    "optional": true,
+                    "type": "number"
+                },
+                {
+                    "description": "Whether to show connecting lines (defaults to true)",
+                    "name": "showLine",
+                    "optional": true,
+                    "type": "boolean"
+                },
+                {
+                    "description": "Whether to show data points (defaults to true)",
+                    "name": "showPoints",
+                    "optional": true,
+                    "type": "boolean"
+                },
+                {
+                    "description": "Point and line opacity 0-1 (defaults to 0.9)",
+                    "name": "opacity",
+                    "optional": true,
+                    "type": "number"
+                },
+                {
+                    "description": "Plot color (defaults to 'red')",
+                    "name": "color",
+                    "optional": true,
+                    "type": "string"
+                },
+                {
+                    "description": "Plot style: 'normal', 'minimal', or 'sparkline' (defaults to 'sparkline')",
+                    "name": "style",
+                    "optional": true,
+                    "type": "string"
+                },
+                {
+                    "description": "Y-axis label (defaults to 'Value')",
+                    "name": "label",
+                    "optional": true,
+                    "type": "string"
+                }
+            ],
+            "result": {
+                "type": "string"
+            }
         }
     ]
 }

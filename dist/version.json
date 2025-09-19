@@ -1,13 +1,14 @@
 {
-  "version": "1.0.74",
-  "description": "Fixed timezone handling in PULL function to use local timezone for user input dates",
-  "buildDate": "2025-09-16",
+  "version": "1.0.78",
+  "description": "Fixed function parameter issues and added case-insensitive aliases",
+  "buildDate": "2025-09-19",
   "changes": [
-    "Fixed timezone issue where input dates were automatically converted to UTC",
-    "Updated backend to preserve naive timestamps, allowing Seeq to use workstation timezone",
-    "Modified timestamp formatting to preserve local timezone information",
-    "Updated frontend documentation to clarify timezone behavior",
-    "Now when users input 'Aug 1 2025 00:00' they get data starting at Aug 1 2025 00:00 in their local timezone",
-    "Eliminated the 5-hour offset issue that was occurring with UTC conversion"
+    "Fixed PULL function to work without requiring the last 2 optional parameters",
+    "Made all function parameters properly optional using TypeScript optional syntax",
+    "Added case-insensitive function aliases (pull, create_plot_code, search_sensors, current, average)",
+    "Improved error reporting in CREATE_PLOT_CODE for better debugging of HTTP 500 errors",
+    "Added default value handling inside functions instead of relying on TypeScript defaults",
+    "All functions now work with minimal required parameters and proper defaults",
+    "Enhanced error messages to include status codes and response details for troubleshooting"
   ]
 }
