@@ -32,8 +32,8 @@ yarn-error.log*
 *.tmp
 *.temp
 
-# Keep the dist folder for deployment
-!dist/
+# Ignore dist folder - GitHub Actions will build it in the cloud
+dist/
 
 # Keep manifest.xml in root for development
 !manifest.xml

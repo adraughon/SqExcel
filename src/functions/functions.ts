@@ -658,7 +658,7 @@ export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: 
 const COLOR_MAP: { [key: string]: string } = {
   'red': '#FF006E',
   'blue': '#3A86FF',
-  'green': '#40C9A2',
+  'green': '#107D42',
   'yellow': '#FFBE0B',
   'black': '#1C1C1C',
   'gray': '#6C757D',
