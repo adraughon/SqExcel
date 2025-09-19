@@ -41,8 +41,13 @@ function commitChanges(commitMessage) {
   try {
     execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
     console.log(`✅ Committed with message: "${commitMessage}"`);
+    
+    // Push to remote
+    console.log('🚀 Pushing to remote repository...');
+    execSync('git push', { stdio: 'inherit' });
+    console.log('✅ Successfully pushed to remote repository');
   } catch (error) {
-    console.error('❌ Failed to commit:', error.message);
+    console.error('❌ Failed to commit or push:', error.message);
     process.exit(1);
   }
 }

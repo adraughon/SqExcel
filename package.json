@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "bump-version": "node scripts/bump-version.js",
-    "release": "npm run bump-version && git add -A && node scripts/release-commit.js && git push",
+    "release": "npm run bump-version && git add -A && node scripts/release-commit.js",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "dev-server": "webpack serve --mode development",

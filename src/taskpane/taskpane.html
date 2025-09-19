@@ -106,29 +106,29 @@
                 <h3 class="text-xl font-semibold mb-4 text-gray-800">Excel Functions</h3>
                 
                 <!-- PULL Function -->
-                <div class="mb-6">
-                    <div class="bg-green-100 text-green-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                <div class="mb-8">
+                    <div class="bg-green-100 text-green-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
                         PULL
                     </div>
                     <p class="text-sm text-gray-600 mb-2 font-medium">Retrieves time series data from Seeq sensors</p>
-                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.PULL(sensorNames, startDatetime, endDatetime, [mode], [modeValue])</code>
+                    <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.PULL(sensorNames, startDatetime, endDatetime, [mode], [modeValue])</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
                         <ul class="text-xs text-gray-600 space-y-1 ml-4">
-                            <li><strong>sensorNames:</strong> Range containing sensor names (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>startDatetime:</strong> Start time as text (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>endDatetime:</strong> End time as text (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>mode:</strong> "points" or "grid" (optional, default: "points")</li>
-                            <li><strong>modeValue:</strong> Number of points or time interval (optional, default: 1000)</li>
+                            <li><strong>sensorNames<span class="text-red-500">*</span>:</strong> Range containing sensor names</li>
+                            <li><strong>startDatetime<span class="text-red-500">*</span>:</strong> Start time as text</li>
+                            <li><strong>endDatetime<span class="text-red-500">*</span>:</strong> End time as text</li>
+                            <li><strong>mode:</strong> "points" or "grid" (default: "points")</li>
+                            <li><strong>modeValue:</strong> Number of points or time interval (default: 1000)</li>
                         </ul>
                     </div>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Examples:</h5>
                         <div class="space-y-1">
-                            <code class="bg-white border rounded px-2 py-1 block text-xs font-mono text-gray-800">=SqExcel.PULL(A1:C1, "8/1/2025 0:00", "8/2/2025 0:00")</code>
-                            <code class="bg-white border rounded px-2 py-1 block text-xs font-mono text-gray-800">=SqExcel.PULL(A1:C1, "8/1/2025 0:00", "8/2/2025 0:00", "grid", "15min")</code>
+                            <code class="bg-gray-100 px-2 py-1 block text-xs font-mono text-gray-800 rounded">=SqExcel.PULL(A1:C1, "8/1/2025 0:00", "8/2/2025 0:00")</code>
+                            <code class="bg-gray-100 px-2 py-1 block text-xs font-mono text-gray-800 rounded">=SqExcel.PULL(A1:C1, "8/1/2025 0:00", "8/2/2025 0:00", "grid", "15min")</code>
                         </div>
                     </div>
                     
@@ -136,85 +136,85 @@
                 </div>
 
                 <!-- CURRENT Function -->
-                <div class="mb-6">
-                    <div class="bg-blue-100 text-blue-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                <div class="mb-8">
+                    <div class="bg-blue-100 text-blue-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
                         CURRENT
                     </div>
                     <p class="text-sm text-gray-600 mb-2 font-medium">Gets the current value of a single sensor</p>
-                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.CURRENT(sensorName)</code>
+                    <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.CURRENT(sensorName)</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
                         <ul class="text-xs text-gray-600 space-y-1 ml-4">
-                            <li><strong>sensorName:</strong> Single sensor name as text (required<span class="text-red-500">*</span>)</li>
+                            <li><strong>sensorName<span class="text-red-500">*</span>:</strong> Single sensor name as text</li>
                         </ul>
                     </div>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Examples:</h5>
-                        <code class="bg-white border rounded px-2 py-1 block text-xs font-mono text-gray-800">=SqExcel.CURRENT("A1_Pressure")</code>
+                        <code class="bg-gray-100 px-2 py-1 block text-xs font-mono text-gray-800 rounded">=SqExcel.CURRENT("A1_Pressure")</code>
                     </div>
                     
                     <p class="text-xs text-gray-600"><strong>Returns:</strong> Current scalar value</p>
                 </div>
 
                 <!-- AVERAGE Function -->
-                <div class="mb-6">
-                    <div class="bg-purple-100 text-purple-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                <div class="mb-8">
+                    <div class="bg-purple-100 text-purple-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
                         AVERAGE
                     </div>
                     <p class="text-sm text-gray-600 mb-2 font-medium">Calculates average value over a time range</p>
-                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.AVERAGE(sensorName, startDatetime, endDatetime)</code>
+                    <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.AVERAGE(sensorName, startDatetime, endDatetime)</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
                         <ul class="text-xs text-gray-600 space-y-1 ml-4">
-                            <li><strong>sensorName:</strong> Single sensor name as text (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>startDatetime:</strong> Start time as text (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>endDatetime:</strong> End time as text (required<span class="text-red-500">*</span>)</li>
+                            <li><strong>sensorName<span class="text-red-500">*</span>:</strong> Single sensor name as text</li>
+                            <li><strong>startDatetime<span class="text-red-500">*</span>:</strong> Start time as text</li>
+                            <li><strong>endDatetime<span class="text-red-500">*</span>:</strong> End time as text</li>
                         </ul>
                     </div>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Examples:</h5>
-                        <code class="bg-white border rounded px-2 py-1 block text-xs font-mono text-gray-800">=SqExcel.AVERAGE("B3-Speed.PV", "8/1/2025 0:00", "8/1/2025 1:00")</code>
+                        <code class="bg-gray-100 px-2 py-1 block text-xs font-mono text-gray-800 rounded">=SqExcel.AVERAGE("B3-Speed.PV", "8/1/2025 0:00", "8/1/2025 1:00")</code>
                     </div>
                     
                     <p class="text-xs text-gray-600"><strong>Returns:</strong> Average value over 100 data points</p>
                 </div>
 
                 <!-- CREATE_PLOT_CODE Function -->
-                <div class="mb-6">
-                    <div class="bg-orange-100 text-orange-800 rounded-lg px-4 py-2 mb-2 inline-block font-bold">
+                <div class="mb-8">
+                    <div class="bg-orange-100 text-orange-800 rounded-lg px-3 py-1.5 mb-2 inline-block font-bold text-sm">
                         CREATE_PLOT_CODE
                     </div>
                     <p class="text-sm text-gray-600 mb-2 font-medium">Generates Python matplotlib code for plotting sensor data</p>
-                    <code class="text-xs text-gray-700 block mb-3">=SqExcel.CREATE_PLOT_CODE(sensorNames, startDatetime, endDatetime, [points], [height], [aspectRatio], [showLine], [showPoints], [opacity], [colors], [style], [labels], [yAxisBehavior])</code>
+                    <code class="text-xs text-gray-700 block mb-3 bg-gray-100 px-2 py-1 rounded">=SqExcel.CREATE_PLOT_CODE(sensorNames, startDatetime, endDatetime, [points], [height], [aspectRatio], [showLine], [showPoints], [opacity], [colors], [style], [labels], [yAxisBehavior])</code>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Parameters:</h5>
                         <ul class="text-xs text-gray-600 space-y-1 ml-4">
-                            <li><strong>sensorNames:</strong> Range with sensor names (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>startDatetime:</strong> Start time as text (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>endDatetime:</strong> End time as text (required<span class="text-red-500">*</span>)</li>
-                            <li><strong>points:</strong> Number of data points (optional, default: 100)</li>
-                            <li><strong>height:</strong> Chart height ratio (optional, default: 0.3)</li>
-                            <li><strong>aspectRatio:</strong> Width to height ratio (optional, default: 5)</li>
-                            <li><strong>showLine:</strong> Display line plot (optional, default: true)</li>
-                            <li><strong>showPoints:</strong> Display data points (optional, default: true)</li>
-                            <li><strong>opacity:</strong> Chart transparency 0-1 (optional, default: 0.9)</li>
-                            <li><strong>colors:</strong> Comma-separated colors (optional, default: "green, red, blue")</li>
-                            <li><strong>style:</strong> "sparkline", "minimal", or "normal" (optional, default: "sparkline")</li>
-                            <li><strong>labels:</strong> Comma-separated sensor labels (optional, default: sensor names)</li>
-                            <li><strong>yAxisBehavior:</strong> "share" or "split" (optional, default: "share")</li>
+                            <li><strong>sensorNames<span class="text-red-500">*</span>:</strong> Range with sensor names</li>
+                            <li><strong>startDatetime<span class="text-red-500">*</span>:</strong> Start time as text</li>
+                            <li><strong>endDatetime<span class="text-red-500">*</span>:</strong> End time as text</li>
+                            <li><strong>points:</strong> Number of data points (default: 100)</li>
+                            <li><strong>height:</strong> Chart height ratio (default: 0.3)</li>
+                            <li><strong>aspectRatio:</strong> Width to height ratio (default: 5)</li>
+                            <li><strong>showLine:</strong> Display line plot (default: true)</li>
+                            <li><strong>showPoints:</strong> Display data points (default: true)</li>
+                            <li><strong>opacity:</strong> Chart transparency 0-1 (default: 0.9)</li>
+                            <li><strong>colors:</strong> Comma-separated colors (default: "green, red, blue")</li>
+                            <li><strong>style:</strong> "sparkline", "minimal", or "normal" (default: "sparkline")</li>
+                            <li><strong>labels:</strong> Comma-separated sensor labels (default: sensor names)</li>
+                            <li><strong>yAxisBehavior:</strong> "share" or "split" (default: "share")</li>
                         </ul>
                     </div>
                     
                     <div class="mb-4">
                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Examples:</h5>
                         <div class="space-y-1">
-                            <code class="bg-white border rounded px-2 py-1 block text-xs font-mono text-gray-800">=SqExcel.CREATE_PLOT_CODE(A1:C1, "8/1/2025 0:00", "8/1/2025 1:00")</code>
-                            <code class="bg-white border rounded px-2 py-1 block text-xs font-mono text-gray-800">=SqExcel.CREATE_PLOT_CODE(A1:B1, "8/1/2025", "8/2/2025", 100, 0.5, 4, TRUE, TRUE, 0.8, "green, red", "normal", "Temp, Press", "split")</code>
+                            <code class="bg-gray-100 px-2 py-1 block text-xs font-mono text-gray-800 rounded">=SqExcel.CREATE_PLOT_CODE(A1:C1, "8/1/2025 0:00", "8/1/2025 1:00")</code>
+                            <code class="bg-gray-100 px-2 py-1 block text-xs font-mono text-gray-800 rounded">=SqExcel.CREATE_PLOT_CODE(A1:B1, "8/1/2025", "8/2/2025", 100, 0.5, 4, TRUE, TRUE, 0.8, "green, red", "normal", "Temp, Press", "split")</code>
                         </div>
                     </div>
                     
@@ -234,12 +234,12 @@
                         </h5>
                         <ol class="space-y-1 text-xs text-blue-700">
                             <li><strong>1.</strong> Go to an empty cell where you want the plot</li>
-                            <li><strong>2.</strong> Type <code class="bg-blue-100 px-1 rounded font-mono">=PY</code> to enter Python mode</li>
-                            <li><strong>3.</strong> Type <code class="bg-blue-100 px-1 rounded font-mono">exec(</code>,  and click the cell with plot code, then <code class="bg-blue-100 px-1 rounded font-mono">)</code></li>
+                            <li><strong>2.</strong> Type <code class="bg-gray-100 px-1 rounded font-mono">=PY</code> to enter Python mode</li>
+                            <li><strong>3.</strong> Type <code class="bg-gray-100 px-1 rounded font-mono">exec(</code>,  and click the cell with plot code, then <code class="bg-gray-100 px-1 rounded font-mono">)</code></li>
                             <li><strong>4.</strong> Press Ctrl + Enter to execute the cell</li>
                         </ol>
                         <div class="mt-2 p-2 bg-blue-100 rounded text-xs">
-                            <strong class="text-blue-800">💡 Tip:</strong> <span class="text-blue-700">If Excel shows a message like <code class="bg-blue-100 px-1 rounded font-mono">PY[Image]</code> instead of the plot, click the icon next to "PY" in the formula bar and change from "Python Object" to "Excel Value"</span>
+                            <strong class="text-blue-800">💡 Tip:</strong> <span class="text-blue-700">If Excel shows a message like <code class="bg-gray-100 px-1 rounded font-mono">PY[Image]</code> instead of the plot, click the icon next to "PY" in the formula bar and change from "Python Object" to "Excel Value"</span>
                         </div>
                     </div>
                     
@@ -250,9 +250,9 @@
             <!-- Need Help Card -->
             <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm w-full">
                 <h3 class="text-lg font-medium mb-3 text-gray-800">Need Help?</h3>
-                <p class="text-sm text-gray-600 text-center">
+                <div class="text-sm text-gray-600 text-center">
                     Contact us at <a href="mailto:austin@radialflow.net" class="text-indigo-600 underline font-medium">austin@radialflow.net</a>
-                </p>
+                </div>
             </div>
         </div>
 
