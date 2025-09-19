@@ -11,6 +11,9 @@ import './taskpane.css';
 // Import the new Seeq API client
 import { SeeqAPIClient } from './seeq-api-client';
 
+// Import color map from functions
+import { COLOR_MAP } from '../functions/functions';
+
 // Version will be dynamically loaded from version.json
 let ADDIN_VERSION = "Loading...";
 
@@ -101,8 +104,38 @@ function initializeSeeqAuth(): void {
   // Load saved credentials if available
   loadSavedCredentials();
   
-  // Display version number to prove we're using new code
-  showAuthStatus(`Add-in Version: ${ADDIN_VERSION}`, "info");
+  // Display version number in header
+  const versionDisplay = document.getElementById("version-display");
+  if (versionDisplay) {
+    versionDisplay.textContent = `v${ADDIN_VERSION}`;
+  }
+  
+  // Generate dynamic color map
+  generateColorMap();
+}
+
+function generateColorMap(): void {
+  // Find the color grid container in the HTML
+  const colorGrid = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.gap-2.text-xs');
+  
+  if (colorGrid) {
+    // Clear existing content
+    colorGrid.innerHTML = '';
+    
+    // Generate color swatches from COLOR_MAP
+    Object.entries(COLOR_MAP).forEach(([colorName, colorHex]) => {
+      // Skip duplicate gray/grey entries
+      if (colorName === 'grey') return;
+      
+      const colorDiv = document.createElement('div');
+      colorDiv.className = 'flex items-center gap-2';
+      colorDiv.innerHTML = `
+        <div class="w-3 h-3 rounded" style="background-color: ${colorHex};"></div>
+        <span class="text-gray-700">"${colorName}"</span>
+      `;
+      colorGrid.appendChild(colorDiv);
+    });
+  }
 }
 
 function handleModeChange(): void {

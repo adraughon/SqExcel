@@ -652,7 +652,7 @@ export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: 
 /**
  * Beautiful color mapping for plots
  */
-const COLOR_MAP: { [key: string]: string } = {
+export const COLOR_MAP: { [key: string]: string } = {
   'red': '#FF006E',
   'blue': '#3A86FF',
   'green': '#117D43',
