@@ -8,9 +8,10 @@
 /**
  * SqExcel Custom Functions
  * 
- * This add-in provides 2 Excel functions for working with Seeq data:
+ * This add-in provides Excel functions for working with Seeq data:
  * - SEARCH_SENSORS: Search for sensors in your Seeq environment
  * - PULL: Pull time series data from Seeq sensors
+ * - CREATE_PLOT_CODE: Generate Python plotting code with embedded sensor data
  * 
  * SETUP INSTRUCTIONS:
  * 1. Create a Seeq Access Key:
@@ -31,6 +32,8 @@
  *    - PULL: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59) - defaults to 1000 points
  *    - PULL with grid: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59","grid","15min")
  *    - PULL with points: =PULL(A1:C1,"2024-01-01T00:00:00","2024-01-31T23:59:59,"points",500)
+ *    - CREATE_PLOT_CODE: =CREATE_PLOT_CODE(A1,"2024-01-01T00:00:00","2024-01-31T23:59:59") - basic usage
+ *    - CREATE_PLOT_CODE with options: =CREATE_PLOT_CODE(A1,"2024-01-01","2024-01-02",100,0.5,4,TRUE,TRUE,0.8,"blue","normal","Temperature")
  * 
  * TROUBLESHOOTING:
  * - If you see "#NAME?" errors, make sure the add-in is properly loaded
@@ -645,4 +648,275 @@ export function AVERAGE(sensorName: string, startDatetime: string, endDatetime: 
   }
 }
 
-// DEBUG function removed as part of cleanup
+/**
+ * Creates Python plotting code with embedded sensor data for visualization.
+ * This function fetches sensor data and returns complete Python code as text.
+ * 
+ * @customfunction CREATE_PLOT_CODE
+ * @param sensorNames Range containing sensor names (e.g., B1:D1)
+ * @param startDatetime Start time for data pull (ISO format: "2024-01-01T00:00:00" or "8/1/2025 0:00")
+ * @param endDatetime End time for data pull (ISO format: "2024-01-31T23:59:59" or "8/3/2025 0:00")
+ * @param points Number of data points to retrieve (defaults to 100)
+ * @param height Plot height in inches (defaults to 0.3)
+ * @param aspectRatio Width to height ratio (defaults to 5)
+ * @param showLine Whether to show connecting lines (defaults to true)
+ * @param showPoints Whether to show data points (defaults to true)
+ * @param opacity Point and line opacity 0-1 (defaults to 0.9)
+ * @param color Plot color (defaults to 'red')
+ * @param style Plot style: 'normal', 'minimal', or 'sparkline' (defaults to 'sparkline')
+ * @param label Y-axis label (defaults to 'Value')
+ * @returns Python code as text string
+ */
+export function CREATE_PLOT_CODE(
+  sensorNames: string[][],
+  startDatetime: string,
+  endDatetime: string,
+  points: number = 100,
+  height: number = 0.3,
+  aspectRatio: number = 5,
+  showLine: boolean = true,
+  showPoints: boolean = true,
+  opacity: number = 0.9,
+  color: string = 'red',
+  style: string = 'sparkline',
+  label: string = 'Value'
+): string {
+  try {
+    // Flatten the sensor names array and filter out empty cells
+    const sensorNamesList = sensorNames
+      .flat()
+      .filter(name => name && name.trim() !== "");
+    
+    if (sensorNamesList.length === 0) {
+      return "Error: No sensor names provided";
+    }
+
+    // For now, we'll use the first sensor name for single sensor plotting
+    const sensorName = sensorNamesList[0];
+    
+    // Validate datetime format
+    const startDate = parseDate(startDatetime);
+    const endDate = parseDate(endDatetime);
+    
+    if (!startDate || !endDate) {
+      return "Error: Invalid datetime format. Use formats like: 8/1/2025 0:00 or 2024-01-01T00:00:00";
+    }
+    
+    if (startDate >= endDate) {
+      return "Error: Start datetime must be before end datetime";
+    }
+
+    // Calculate time range and grid for the specified number of points
+    const timeRangeMs = endDate.getTime() - startDate.getTime();
+    const timeRangeSeconds = Math.floor(timeRangeMs / 1000);
+    const secondsPerPoint = Math.floor(timeRangeSeconds / points);
+    
+    if (secondsPerPoint < 1) {
+      return "Error: Time range too short for requested number of points. Try fewer points or a longer time range.";
+    }
+    
+    const grid = `${secondsPerPoint}s`;
+
+    // Check if we have stored credentials
+    const authCredentials = getStoredCredentials();
+    if (!authCredentials) {
+      return "Error: Not authenticated to Seeq. Please use the SqExcel taskpane to authenticate first.";
+    }
+    
+    // Get user's timezone
+    const userTimezone = (function() {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return tz || 'UTC';
+      } catch (_e) {
+        return 'UTC';
+      }
+    })();
+    
+    // Call backend server to get sensor data
+    const result = callBackendSync('/api/seeq/sensor-data', {
+      sensorNames: [sensorName],
+      startDatetime,
+      endDatetime,
+      grid,
+      userTimezone,
+      url: authCredentials.url,
+      accessKey: authCredentials.accessKey,
+      password: authCredentials.password,
+      authProvider: "Seeq",
+      ignoreSslErrors: false
+    });
+    
+    if (!result.success || !result.data || result.data.length === 0) {
+      return "Error: No data returned from sensor. " + (result.error || result.message || "Unknown error");
+    }
+
+    // Extract timestamps and sensor values
+    const timestamps: string[] = [];
+    const sensorValues: (number | string)[] = [];
+    const valueColumn = result.data_columns?.[0];
+    
+    if (!valueColumn) {
+      return "Error: No data columns returned";
+    }
+
+    result.data.forEach((row: any) => {
+      const timestamp = row.Timestamp || row.index;
+      const value = row[valueColumn];
+      if (timestamp !== undefined && value !== undefined) {
+        // Convert timestamp to ISO string for Python datetime parsing
+        let timestampStr: string;
+        if (timestamp instanceof Date) {
+          timestampStr = timestamp.toISOString();
+        } else if (typeof timestamp === 'number') {
+          // Handle Excel serial numbers or Unix timestamps
+          const date = new Date(timestamp > 100000 ? timestamp : (timestamp - 25569) * 86400000);
+          timestampStr = date.toISOString();
+        } else {
+          timestampStr = String(timestamp);
+        }
+        timestamps.push(timestampStr);
+        sensorValues.push(value);
+      }
+    });
+
+    if (timestamps.length === 0) {
+      return "Error: No valid data points found";
+    }
+
+    // Generate Python code with embedded data
+    const pythonCode = generatePythonPlotCode(
+      timestamps,
+      sensorValues,
+      height,
+      aspectRatio,
+      showLine,
+      showPoints,
+      opacity,
+      color,
+      style,
+      label
+    );
+
+    return pythonCode;
+    
+  } catch (error) {
+    return "Error: " + (error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+/**
+ * Helper function to generate Python plotting code with embedded data
+ */
+function generatePythonPlotCode(
+  timestamps: string[],
+  sensorValues: (number | string)[],
+  height: number,
+  aspectRatio: number,
+  showLine: boolean,
+  showPoints: boolean,
+  opacity: number,
+  color: string,
+  style: string,
+  label: string
+): string {
+  // Convert arrays to Python list format
+  const timestampsPython = timestamps.map(t => `'${t}'`).join(', ');
+  const valuesPython = sensorValues.map(v => 
+    typeof v === 'number' ? v.toString() : `'${v}'`
+  ).join(', ');
+
+  return `import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from datetime import datetime
+
+# Data from Seeq sensor
+timestamps = [${timestampsPython}]
+sensor_values = [${valuesPython}]
+
+# Convert timestamps to datetime objects
+timestamps = [datetime.fromisoformat(ts.replace('Z', '+00:00')) for ts in timestamps]
+
+# Create DataFrame
+df = pd.DataFrame({'timestamp': timestamps, 'sensor_value': sensor_values})
+
+# Plot parameters
+height = ${height}
+aspect_ratio = ${aspectRatio}
+show_line = ${showLine ? 'True' : 'False'}
+show_points = ${showPoints ? 'True' : 'False'}
+opacity = ${opacity}
+color = '${color}'
+style = '${style}'  # 'normal', 'minimal', or 'sparkline'
+label = '${label}'
+
+# Calculate marker size and line width based on figure height
+base_markersize = 2.2
+base_linewidth = 2
+max_marker_size = 4
+opacity_ratio = 0.7  # lower means fainter lines
+
+scaled_markersize = min(base_markersize * height, max_marker_size)
+scaled_linewidth = base_linewidth / base_markersize * scaled_markersize
+
+plt.figure(figsize=(height * aspect_ratio, height), facecolor='#F7F7F7')
+linestyle = '-' if show_line else 'None'
+marker = 'o' if show_points else 'None'
+line_alpha = opacity * opacity_ratio if show_points else opacity
+plt.plot(df['timestamp'], df['sensor_value'], linestyle=linestyle, marker=marker, linewidth=scaled_linewidth, markersize=scaled_markersize, color=color, alpha=line_alpha, markerfacecolor=color, markeredgecolor=color, markerfacecoloralt=color)
+if show_points:
+    plt.plot(df['timestamp'], df['sensor_value'], linestyle='None', marker='o', markersize=scaled_markersize, color=color, alpha=opacity)
+
+if style == 'normal':
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%y %H:%M'))
+    plt.xticks(rotation=45, ha='right')
+    plt.ylabel(label)
+    plt.tight_layout()
+elif style == 'minimal':
+    # Only show first and last timestamp
+    ax = plt.gca()
+    ax.set_xticks([df['timestamp'].iloc[0], df['timestamp'].iloc[-1]])
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%y %H:%M'))
+    plt.xticks(rotation=0, ha='center')  # Flat text direction
+    plt.ylabel(label)
+    # Remove grid lines
+    ax.grid(False)
+    # Maximize figure area - remove margins
+    plt.subplots_adjust(left=0.1, right=1.0, top=1.0, bottom=0.15)
+elif style == 'sparkline':
+    # Create a new figure without frame for sparkline
+    plt.clf()  # Clear the figure
+    plt.gcf().patch.set_visible(False)  # Remove figure background/frame
+    ax = plt.axes([0, 0, 1, 1])  # Create axes that fill entire figure
+    
+    # Plot the data again since we cleared the figure
+    plt.plot(df['timestamp'], df['sensor_value'], linestyle=linestyle, marker=marker, 
+             linewidth=scaled_linewidth, markersize=scaled_markersize, color=color, 
+             alpha=line_alpha, markerfacecolor=color, markeredgecolor=color)
+    if show_points:
+        plt.plot(df['timestamp'], df['sensor_value'], linestyle='None', marker='o', 
+                 markersize=scaled_markersize, color=color, alpha=opacity)
+    
+    # Remove all spines
+    for k, v in ax.spines.items():
+        v.set_visible(False)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    
+    # Remove grid and set margins to zero
+    ax.grid(False)
+    ax.margins(0)
+    
+    # Get min/max values for annotations
+    y_min = df['sensor_value'].min()
+    y_max = df['sensor_value'].max()
+    
+    # Add min/max as text annotations positioned within plot area
+    ax.text(1, 0.99, f'{y_max:.1f}', transform=ax.transAxes, fontsize=8, 
+            verticalalignment='top', horizontalalignment='left', color='black')
+    ax.text(1, 0.01, f'{y_min:.1f}', transform=ax.transAxes, fontsize=8, 
+            verticalalignment='bottom', horizontalalignment='left', color='black')
+
+plt.show()`;
+}

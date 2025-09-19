@@ -1,13 +1,14 @@
 {
-  "version": "1.0.74",
-  "description": "Fixed timezone handling in PULL function to use local timezone for user input dates",
-  "buildDate": "2025-09-16",
+  "version": "1.0.75",
+  "description": "Added CREATE_PLOT_CODE function to generate Python plotting code with embedded sensor data",
+  "buildDate": "2025-09-19",
   "changes": [
-    "Fixed timezone issue where input dates were automatically converted to UTC",
-    "Updated backend to preserve naive timestamps, allowing Seeq to use workstation timezone",
-    "Modified timestamp formatting to preserve local timezone information",
-    "Updated frontend documentation to clarify timezone behavior",
-    "Now when users input 'Aug 1 2025 00:00' they get data starting at Aug 1 2025 00:00 in their local timezone",
-    "Eliminated the 5-hour offset issue that was occurring with UTC conversion"
+    "Added new CREATE_PLOT_CODE custom function that fetches sensor data and returns Python plotting code as text",
+    "Function supports customizable plot parameters: height, aspect ratio, colors, styles, opacity, and labels",
+    "Implements three plot styles: normal, minimal, and sparkline with appropriate formatting",
+    "Defaults to 100 data points for optimal performance",
+    "Generated Python code includes embedded sensor data and complete matplotlib plotting logic",
+    "Supports all existing datetime formats and timezone handling from PULL function",
+    "Updated function documentation with usage examples and parameter descriptions"
   ]
 }
